@@ -16,7 +16,7 @@ export function Login() {
   useEffect(() => {
     if (isAuthenticated) {
       const user = useAuthStore.getState().user;
-      if (user?.role === 'ADMIN' || user?.role === 'STAFF') {
+      if (user?.role === 'ADMIN' || user?.role === 'ROLE_ADMIN' || user?.role === 'STAFF') {
         navigate("/admin");
       } else {
         navigate("/");
@@ -41,7 +41,7 @@ export function Login() {
       // Lấy state mới nhất từ store sau khi setToken
       const user = useAuthStore.getState().user;
       
-      if (user?.role === 'ADMIN' || user?.role === 'STAFF') {
+      if (user?.role === 'ADMIN' || user?.role === 'ROLE_ADMIN' || user?.role === 'STAFF') {
         navigate("/admin");
       } else {
         navigate("/");

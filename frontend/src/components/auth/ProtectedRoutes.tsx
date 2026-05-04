@@ -14,7 +14,7 @@ export const AdminRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/" replace />;
   }
 
-  if (user?.role === 'ADMIN' || user?.role === 'STAFF') {
+  if (user?.role === 'ADMIN' || user?.role === 'ROLE_ADMIN' || user?.role === 'STAFF') {
     return <>{children}</>;
   }
 
@@ -36,7 +36,7 @@ export const GuestRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, user } = useAuthStore();
 
   if (isAuthenticated) {
-    if (user?.role === 'ADMIN' || user?.role === 'STAFF') {
+    if (user?.role === 'ADMIN' || user?.role === 'ROLE_ADMIN' || user?.role === 'STAFF') {
       return <Navigate to="/admin" replace />;
     }
     return <Navigate to="/" replace />;
