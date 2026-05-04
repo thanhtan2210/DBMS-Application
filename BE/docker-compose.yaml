@@ -1,0 +1,44 @@
+services:
+  database:
+    image: pgvector/pgvector:pg16
+    container_name: dbms_postgres
+    # Tăng bộ nhớ chia sẻ để hỗ trợ các truy vấn vector nặng
+    shm_size: 512mb 
+    # Tối ưu hóa các tham số PostgreSQL cho hiệu năng cao (High-Volume)
+    command: >
+      postgres -c shared_buffers=256MB
+               -c work_mem=16MB
+               -c maintenance_work_mem=128MB
+               -c checkpoint_completion_target=0.9
+               -c wal_buffers=16MB
+               -c default_statistics_target=100
+               -c random_page_cost=1.1
+               -c effective_io_concurrency=200
+               -c max_worker_processes=8
+               -c max_parallel_workers_per_gather=4
+    # Giới hạn tài nguyên để tránh làm treo máy chủ khi Backend Java khởi chạy
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1.5GB
+        reservations:
+          cpus: '0.5'
+          memory: 512MB
+    volumes:
+      - db_data:/var/lib/postgresql
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: main_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    networks:
+      my-network:
+
+volumes:
+  db_data:
+
+networks:
+  my-network:
+    driver: bridge

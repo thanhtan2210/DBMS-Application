@@ -1,0 +1,9 @@
+{
+    "java.compile.nullAnalysis.mode": "automatic",
+    "chat.tools.terminal.autoApprove": {
+        "/^\\$path = \"d:\\\\Bon Bon\\\\SourceCode\\\\DBMS-Application\\\\frontend\\\\src\\\\modules\\\\admin\"; if \\(!\\(Test-Path \\$path\\)\\) \\{ New-Item -ItemType Directory -Path \\$path -Force \\| Out-Null \\}; \\$path = \"d:\\\\Bon Bon\\\\SourceCode\\\\DBMS-Application\\\\frontend\\\\src\\\\modules\\\\storefront\"; if \\(!\\(Test-Path \\$path\\)\\) \\{ New-Item -ItemType Directory -Path \\$path -Force \\| Out-Null \\}; Write-Host \"✓ Directories created\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

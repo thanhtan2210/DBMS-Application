@@ -1,0 +1,60 @@
+<configuration>
+    <springProperty scope="context" name="serviceName" source="spring.application.name"/>
+
+    <appender name="FILE_JSON"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- File path của log mới luôn ghi vào đây-->
+        <file>logs/app.log</file>
+        <!-- Rotate theo ngày -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/app.%d{yyyy-MM-dd}.log</fileNamePattern>
+        <!-- Giữ log 14 ngày -->
+            <maxHistory>14</maxHistory>
+        </rollingPolicy>
+
+        <!-- Component convert log sang json (phải thêm  dependency logstash-logback-encoder)-->
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <!-- bắt đầu khai báo các field của json-->
+            <providers>
+                <timestamp>
+                    <fieldName>timestamp</fieldName>
+                    <timeZone>UTC</timeZone>
+                </timestamp>
+
+                <logLevel>
+                    <fieldName>level</fieldName>
+                </logLevel>
+
+                <threadName/>
+                <loggerName/>
+                <message/>
+                <stackTrace/>
+
+                <!-- traceId spanId orderId userId ... -->
+                <mdc/>
+
+                <!-- custom static fields -->
+                <pattern>
+                    <pattern>
+                        {
+                        "service":"${serviceName}",
+                        "env":"${env:-local}"
+                        }
+                    </pattern>
+                </pattern>
+            </providers>
+        </encoder>
+    </appender>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level [traceId=%X{trace_id}] %logger - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="FILE_JSON"/>
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+</configuration>

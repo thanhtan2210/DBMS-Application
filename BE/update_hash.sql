@@ -1,0 +1,1 @@
+UPDATE users SET password_hash = '$2a$10$LBCEYmXvjWMrlMORfk9zWuU4l3viBLDmLVqhHhNtFi3mWPyuFceXC';
