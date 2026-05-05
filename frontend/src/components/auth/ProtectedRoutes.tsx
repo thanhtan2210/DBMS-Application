@@ -1,8 +1,14 @@
 import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuthStore } from '@/store/useAuthStore';
 
-export const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+/**
+ * ADMIN ROUTE GUARD
+ * Only allows ADMIN, ROLE_ADMIN, or STAFF.
+ * Redirects to /login if not authenticated.
+ * Redirects to / if authenticated but not authorized.
+ */
+export const AdminRoute = () => {
   const { isAuthenticated, user } = useAuthStore();
   const location = useLocation();
 
@@ -10,18 +16,21 @@ export const AdminRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (user?.role === 'CUSTOMER') {
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'ROLE_ADMIN' || user?.role === 'STAFF';
+
+  if (!isAdmin) {
     return <Navigate to="/" replace />;
   }
 
-  if (user?.role === 'ADMIN' || user?.role === 'ROLE_ADMIN' || user?.role === 'STAFF') {
-    return <>{children}</>;
-  }
-
-  return <Navigate to="/login" replace />;
+  return <Outlet />;
 };
 
-export const CustomerRoute = ({ children }: { children: React.ReactNode }) => {
+/**
+ * CUSTOMER ROUTE GUARD
+ * Only allows authenticated users.
+ * Redirects to /login if not authenticated.
+ */
+export const CustomerRoute = () => {
   const { isAuthenticated } = useAuthStore();
   const location = useLocation();
 
@@ -29,18 +38,25 @@ export const CustomerRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  return <>{children}</>;
+  return <Outlet />;
 };
 
-export const GuestRoute = ({ children }: { children: React.ReactNode }) => {
+/**
+ * GUEST ROUTE GUARD
+ * Only allows unauthenticated users.
+ * Redirects authenticated users to their respective dashboards.
+ */
+export const GuestRoute = () => {
   const { isAuthenticated, user } = useAuthStore();
 
   if (isAuthenticated) {
-    if (user?.role === 'ADMIN' || user?.role === 'ROLE_ADMIN' || user?.role === 'STAFF') {
+    const isAdmin = user?.role === 'ADMIN' || user?.role === 'ROLE_ADMIN' || user?.role === 'STAFF';
+    if (isAdmin) {
       return <Navigate to="/admin" replace />;
     }
     return <Navigate to="/" replace />;
   }
 
-  return <>{children}</>;
+  return <Outlet />;
 };
+

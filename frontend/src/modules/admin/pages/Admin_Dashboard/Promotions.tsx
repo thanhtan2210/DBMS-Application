@@ -7,60 +7,85 @@ import {
   Filter, 
   Calendar, 
   TrendingUp, 
-  MousePointerClick,
   ChevronRight,
   MoreVertical,
-  Clock,
-  ShieldCheck
+  ChevronLeft
 } from 'lucide-react';
+import { adminListPromotions, adminCreatePromotion, adminDeletePromotion } from '@/modules/admin/services/promotion-service';
 import { cn } from '@lib/utils';
-
-const MOCK_PROMOTIONS = [
-  { id: 'PROM-001', name: 'Summer Solstice Sale', type: 'Percentage', value: '25%', status: 'Active', usage: 1240, start: '2026-06-01', end: '2026-06-30' },
-  { id: 'PROM-002', name: 'New User Welcome', type: 'Fixed amount', value: '$10.00', status: 'Active', usage: 850, start: '2026-01-01', end: '2026-12-31' },
-  { id: 'PROM-003', name: 'Influencer Collab: FELIX', type: 'Percentage', value: '15%', status: 'Scheduled', usage: 0, start: '2026-05-01', end: '2026-05-15' },
-  { id: 'PROM-004', name: 'Clearance Blowout', type: 'Fixed amount', value: '$50.00', status: 'Expired', usage: 2100, start: '2026-03-01', end: '2026-03-15' },
-];
+import { motion, AnimatePresence } from 'motion/react';
 
 export default function Promotions() {
   const [loading, setLoading] = useState(true);
-  const [promotions, setPromotions] = useState(MOCK_PROMOTIONS);
+  const [promotions, setPromotions] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
   const [newPromo, setNewPromo] = useState({
-    name: '',
-    type: 'Percentage',
-    value: '',
-    start: '',
-    end: ''
+    promotionName: '',
+    promotionCode: '',
+    discountType: 'PERCENTAGE',
+    discountValue: 0,
+    minimumOrderAmount: 0,
+    startTime: '',
+    endTime: ''
   });
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1200);
-    return () => clearTimeout(timer);
-  }, []);
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+      setPage(0);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  const fetchPromotions = async () => {
+    try {
+      setLoading(true);
+      const res: any = await adminListPromotions({ page, size: 10 });
+      setPromotions(res.content || []);
+      setTotalPages(res.totalPages || 0);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPromotions();
+  }, [page]);
 
   const filteredPromotions = promotions.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.id.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = p.promotionName?.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) || 
+                          p.promotionCode?.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'All' || p.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
-  const handleCreate = () => {
-    const promo = {
-      ...newPromo,
-      id: `PROM-${Math.floor(100 + Math.random() * 900)}`,
-      status: 'Scheduled',
-      usage: 0
-    };
-    setPromotions([promo, ...promotions]);
-    setIsCreateModalOpen(false);
-    setNewPromo({ name: '', type: 'Percentage', value: '', start: '', end: '' });
+  const handleCreate = async () => {
+    if (!newPromo.promotionName || !newPromo.promotionCode || !newPromo.startTime || !newPromo.endTime) return;
+    try {
+      const payload = {
+        ...newPromo,
+        startTime: new Date(newPromo.startTime).toISOString(),
+        endTime: new Date(newPromo.endTime).toISOString()
+      };
+      await adminCreatePromotion(payload);
+      setIsCreateModalOpen(false);
+      fetchPromotions();
+    } catch(err) {
+      console.error(err);
+      alert('Failed to create promotion');
+    }
   };
 
-  if (loading) {
+  if (loading && promotions.length === 0) {
     return (
       <div className="space-y-8 animate-in fade-in duration-500">
         <div className="flex items-center justify-between">
@@ -70,7 +95,6 @@ export default function Promotions() {
           </div>
           <Skeleton className="h-10 w-44" />
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[1, 2, 3].map(i => (
             <Card key={i} className="p-6">
@@ -79,17 +103,6 @@ export default function Promotions() {
             </Card>
           ))}
         </div>
-
-        <Card className="overflow-hidden">
-          <div className="p-6 border-b border-surface-container">
-            <Skeleton className="h-6 w-32" />
-          </div>
-          <div className="p-6 space-y-4">
-            {[1, 2, 3, 4].map(i => (
-              <Skeleton key={i} className="h-16 w-full rounded-xl" />
-            ))}
-          </div>
-        </Card>
       </div>
     );
   }
@@ -107,32 +120,6 @@ export default function Promotions() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="p-6 border-l-4 border-primary">
-          <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Active Campaigns</p>
-          <div className="flex items-end justify-between mt-2">
-            <p className="text-3xl font-display font-extrabold">12</p>
-            <TrendingUp className="text-green-500 w-5 h-5 mb-1" />
-          </div>
-        </Card>
-        <Card className="p-6 border-l-4 border-secondary">
-          <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Conversion Rate</p>
-          <div className="flex items-end justify-between mt-2">
-            <p className="text-3xl font-display font-extrabold">3.8%</p>
-            <Badge variant="success">+1.2%</Badge>
-          </div>
-        </Card>
-        <Card className="p-6 border-l-4 border-primary-container">
-          <p className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Revenue Impact</p>
-          <div className="flex items-end justify-between mt-2">
-            <p className="text-3xl font-display font-extrabold">$24.5k</p>
-            <div className="flex items-center gap-1 text-green-500 font-bold text-xs mb-1">
-              <TrendingUp className="w-3 h-3" />
-            </div>
-          </div>
-        </Card>
-      </div>
-
       <Card className="overflow-hidden">
         <div className="p-6 border-b border-surface-container flex items-center justify-between bg-surface-container-lowest">
           <div className="relative w-64">
@@ -144,100 +131,95 @@ export default function Promotions() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <div className="flex gap-2 relative">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="gap-2"
-              onClick={() => setIsFilterOpen(!isFilterOpen)}
-            >
-              <Filter className="w-3 h-3" />
-              Filter: {statusFilter}
-            </Button>
-            {isFilterOpen && (
-              <div className="absolute top-full right-0 mt-2 w-40 bg-white shadow-2xl rounded-2xl border border-surface-container z-50 p-1 animate-in zoom-in-95 duration-200">
-                {['All', 'Active', 'Scheduled', 'Expired'].map(status => (
-                  <button 
-                    key={status}
-                    className={cn(
-                      "w-full text-left px-4 py-2.5 text-xs font-bold transition-colors rounded-xl",
-                      statusFilter === status ? "bg-primary text-white" : "hover:bg-surface-container text-on-surface"
-                    )}
-                    onClick={() => {
-                      setStatusFilter(status);
-                      setIsFilterOpen(false);
-                    }}
-                  >
-                    {status}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-surface-container-high/40 text-on-surface-variant border-b border-surface-container">
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest">Promotion Name</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest">Type</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest">Status</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-center">Usages</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-right">Validity</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-right">Action</th>
+              <tr className="bg-surface-container-low text-on-surface-variant">
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Campaign Details</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Discount</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Timeline</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Usage</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Status</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-container">
               {filteredPromotions.map((promo) => (
-                <tr key={promo.id} className="hover:bg-surface-container-low transition-colors group">
-                  <td className="px-6 py-5">
-                    <p className="font-bold text-on-surface group-hover:text-primary transition-colors">{promo.name}</p>
-                    <p className="text-[10px] text-on-surface-variant font-mono">{promo.id}</p>
-                  </td>
-                  <td className="px-6 py-5">
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-on-surface">{promo.value}</span>
-                      <span className="text-[10px] text-on-surface-variant uppercase font-semibold">{promo.type}</span>
+                <tr key={promo.promotionId} className="hover:bg-surface-container-lowest transition-colors group">
+                  <td className="px-6 py-4">
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center mt-1">
+                        <TicketPercent className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-on-surface group-hover:text-primary transition-colors">{promo.promotionName}</p>
+                        <p className="text-xs font-mono font-bold text-on-surface-variant mt-1 px-2 py-0.5 bg-surface-container inline-block rounded-md">{promo.promotionCode}</p>
+                      </div>
                     </div>
                   </td>
-                  <td className="px-6 py-5">
-                    <Badge variant={promo.status === 'Active' ? 'success' : promo.status === 'Scheduled' ? 'info' : 'neutral'}>
+                  <td className="px-6 py-4">
+                    <p className="text-sm font-extrabold text-on-surface">
+                      {promo.discountType === 'PERCENTAGE' ? `${promo.discountValue}%` : `$${promo.discountValue}`}
+                    </p>
+                    <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mt-1">{promo.discountType}</p>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col gap-1.5 text-xs font-medium text-on-surface-variant">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-3 h-3" />
+                        {new Date(promo.startTime).toLocaleDateString()}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-3 h-3 opacity-50" />
+                        {new Date(promo.endTime).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <p className="text-sm font-bold text-on-surface">{promo.usedCount || 0} times</p>
+                  </td>
+                  <td className="px-6 py-4">
+                    <Badge variant={promo.status === 'ACTIVE' ? 'success' : promo.status === 'EXPIRED' ? 'error' : 'neutral'}>
                       {promo.status}
                     </Badge>
                   </td>
-                  <td className="px-6 py-5 text-center">
-                    <span className="text-sm font-bold text-on-surface">{promo.usage.toLocaleString()}</span>
-                  </td>
-                  <td className="px-6 py-5 text-right">
-                    <div className="flex flex-col items-end gap-1">
-                      <div className="flex items-center gap-1 text-[10px] font-bold text-on-surface">
-                        <Calendar className="w-3 h-3" />
-                        {promo.start}
-                      </div>
-                      <div className="flex items-center gap-1 text-[10px] font-bold text-on-surface-variant">
-                        <Clock className="w-3 h-3" />
-                        {promo.end}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-5 text-right">
-                    <button className="p-2 hover:bg-surface-container rounded-lg transition-colors text-on-surface-variant">
-                      <MoreVertical className="w-4 h-4" />
-                    </button>
+                  <td className="px-6 py-4 text-right">
+                    <Button variant="tertiary" size="sm" onClick={() => {
+                        if(confirm('Are you sure you want to deactivate this promotion?')) {
+                            adminDeletePromotion(promo.promotionId).then(() => fetchPromotions());
+                        }
+                    }}>Deactivate</Button>
                   </td>
                 </tr>
               ))}
+              {filteredPromotions.length === 0 && (
+                 <tr>
+                    <td colSpan={6} className="px-6 py-10 text-center italic text-on-surface-variant">No promotions found</td>
+                 </tr>
+              )}
             </tbody>
           </table>
+        </div>
+        <div className="p-6 border-t border-surface-container flex items-center justify-between">
+           <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Page {page + 1} of {totalPages}</p>
+           <div className="flex gap-2">
+              <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}><ChevronLeft className="w-4 h-4"/></Button>
+              <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}><ChevronRight className="w-4 h-4"/></Button>
+           </div>
         </div>
       </Card>
 
       {isCreateModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl"
+          >
             <div className="p-8 space-y-6">
               <div className="flex justify-between items-center bg-surface-container-low -m-8 mb-6 p-8">
-                <h3 className="text-2xl font-display font-extrabold text-on-surface">Create Promotion</h3>
+                <h3 className="text-2xl font-display font-extrabold text-on-surface">Create Campaign</h3>
                 <Button variant="outline" size="sm" onClick={() => setIsCreateModalOpen(false)} className="bg-white">Cancel</Button>
               </div>
 
@@ -245,61 +227,75 @@ export default function Promotions() {
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Campaign Name</label>
                   <Input 
-                    placeholder="e.g. Black Friday 2023" 
-                    value={newPromo.name}
-                    onChange={(e) => setNewPromo(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="e.g. Summer Sale 2026" 
+                    value={newPromo.promotionName}
+                    onChange={(e) => setNewPromo(prev => ({ ...prev, promotionName: e.target.value }))}
                   />
                 </div>
-
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Promo Code</label>
+                  <Input 
+                    placeholder="e.g. SUMMER26" 
+                    value={newPromo.promotionCode}
+                    onChange={(e) => setNewPromo(prev => ({ ...prev, promotionCode: e.target.value }))}
+                  />
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Type</label>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Discount Type</label>
                     <select 
-                      className="w-full h-12 px-4 rounded-2xl bg-surface-container border-none text-sm font-bold appearance-none outline-none focus:ring-2 focus:ring-primary/20"
-                      value={newPromo.type}
-                      onChange={(e) => setNewPromo(prev => ({ ...prev, type: e.target.value }))}
+                      className="w-full h-12 px-4 rounded-2xl bg-surface-container border-none text-sm font-bold"
+                      value={newPromo.discountType}
+                      onChange={(e) => setNewPromo(prev => ({ ...prev, discountType: e.target.value }))}
                     >
-                      <option>Percentage</option>
-                      <option>Fixed amount</option>
-                      <option>Free shipping</option>
+                      <option value="PERCENTAGE">Percentage</option>
+                      <option value="FIXED_AMOUNT">Fixed Amount</option>
                     </select>
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Value</label>
                     <Input 
-                      placeholder="e.g. 20% or $50" 
-                      value={newPromo.value}
-                      onChange={(e) => setNewPromo(prev => ({ ...prev, value: e.target.value }))}
+                      type="number"
+                      placeholder={newPromo.discountType === 'PERCENTAGE' ? "e.g. 20 (%)" : "e.g. 500 ($)"} 
+                      value={newPromo.discountValue}
+                      onChange={(e) => setNewPromo(prev => ({ ...prev, discountValue: Number(e.target.value) }))}
                     />
                   </div>
                 </div>
-
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Start Date</label>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Start Time</label>
                     <Input 
-                      type="date"
-                      value={newPromo.start}
-                      onChange={(e) => setNewPromo(prev => ({ ...prev, start: e.target.value }))}
+                      type="datetime-local"
+                      value={newPromo.startTime}
+                      onChange={(e) => setNewPromo(prev => ({ ...prev, startTime: e.target.value }))}
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">End Date</label>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">End Time</label>
                     <Input 
-                      type="date"
-                      value={newPromo.end}
-                      onChange={(e) => setNewPromo(prev => ({ ...prev, end: e.target.value }))}
+                      type="datetime-local"
+                      value={newPromo.endTime}
+                      onChange={(e) => setNewPromo(prev => ({ ...prev, endTime: e.target.value }))}
                     />
                   </div>
                 </div>
+                <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Minimum Order Amount</label>
+                    <Input 
+                      type="number"
+                      placeholder="e.g. 100" 
+                      value={newPromo.minimumOrderAmount}
+                      onChange={(e) => setNewPromo(prev => ({ ...prev, minimumOrderAmount: Number(e.target.value) }))}
+                    />
+                  </div>
               </div>
 
               <Button className="w-full h-14 text-base font-extrabold gap-2" onClick={handleCreate}>
-                <TicketPercent className="w-5 h-5" />
-                Launch Campaign
+                Publish Campaign
               </Button>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
     </div>

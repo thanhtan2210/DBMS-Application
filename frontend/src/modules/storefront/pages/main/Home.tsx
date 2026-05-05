@@ -1,9 +1,30 @@
+import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-import { CATEGORIES, PRODUCTS } from "@/types";
+import { StorefrontProduct } from "@/types";
+import { getActiveProducts } from "@/modules/admin/services/product-service";
+import { getCategories, CategoryDTO } from "@/modules/admin/services/category-service";
 
 export function Home() {
+  const [products, setProducts] = useState<StorefrontProduct[]>([]);
+  const [categories, setCategories] = useState<CategoryDTO[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const prodRes = await getActiveProducts({ size: 4 });
+        setProducts(prodRes.content || []);
+
+        const catRes = await getCategories();
+        setCategories(catRes || []);
+      } catch (err) {
+        console.error("Failed to load home data", err);
+      }
+    };
+    fetchData();
+  }, []);
+
   return (
     <div>
       {/* Hero Section */}
@@ -42,23 +63,23 @@ export function Home() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2 relative aspect-[16/10] rounded-[2rem] overflow-hidden group">
-            <img src={CATEGORIES[0].image} alt="Living" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" referrerPolicy="no-referrer" />
+            <img src={`https://source.unsplash.com/random/800x600?${categories[0]?.name || 'Living'}`} alt={categories[0]?.name || 'Living'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" referrerPolicy="no-referrer" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-12">
-              <h3 className="text-white text-4xl font-bold mb-2">Living</h3>
-              <p className="text-white/70 text-sm">Elevated foundational pieces.</p>
+              <h3 className="text-white text-4xl font-bold mb-2">{categories[0]?.name || 'Living'}</h3>
+              <p className="text-white/70 text-sm">{categories[0]?.description || 'Elevated foundational pieces.'}</p>
             </div>
           </div>
           <div className="space-y-8">
             <div className="relative aspect-square rounded-[2rem] overflow-hidden group">
-              <img src={CATEGORIES[2].image} alt="Bedroom" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" referrerPolicy="no-referrer" />
+              <img src={`https://source.unsplash.com/random/400x400?${categories[1]?.name || 'Bedroom'}`} alt={categories[1]?.name || 'Bedroom'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" referrerPolicy="no-referrer" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-10">
-                <h3 className="text-white text-2xl font-bold">Bedroom</h3>
+                <h3 className="text-white text-2xl font-bold">{categories[1]?.name || 'Bedroom'}</h3>
               </div>
             </div>
             <div className="relative aspect-square rounded-[2rem] overflow-hidden group">
-              <img src={CATEGORIES[1].image} alt="Workspace" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" referrerPolicy="no-referrer" />
+              <img src={`https://source.unsplash.com/random/400x400?${categories[2]?.name || 'Workspace'}`} alt={categories[2]?.name || 'Workspace'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" referrerPolicy="no-referrer" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-10">
-                <h3 className="text-white text-2xl font-bold">Workspace</h3>
+                <h3 className="text-white text-2xl font-bold">{categories[2]?.name || 'Workspace'}</h3>
               </div>
             </div>
           </div>
@@ -70,18 +91,21 @@ export function Home() {
         <div className="container-custom">
           <h2 className="text-3xl font-bold mb-12">New Arrivals</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {PRODUCTS.slice(0, 4).map((p) => (
+            {products.slice(0, 4).map((p) => (
               <Link to={`/product/${p.id}`} key={p.id} className="group flex flex-col bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition-all">
                 <div className="aspect-square rounded-xl overflow-hidden mb-6 bg-slate-50">
                   <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" referrerPolicy="no-referrer" />
                 </div>
                 <div className="flex justify-between items-start mb-2">
                   <h4 className="font-bold text-sm group-hover:text-stellar-accent transition-colors">{p.name}</h4>
-                  <span className="text-sm font-bold text-stellar-accent">${p.basePrice}</span>
+                  <span className="text-sm font-bold text-stellar-accent">${p.basePrice.toLocaleString()}</span>
                 </div>
                 <span className="text-[10px] uppercase font-bold text-stellar-muted tracking-widest">{p.category}</span>
               </Link>
             ))}
+            {products.length === 0 && (
+              <p className="col-span-4 text-center py-10 text-stellar-muted">No new arrivals to show right now.</p>
+            )}
           </div>
         </div>
       </section>

@@ -19,7 +19,8 @@ import {
   Bell,
   ArrowRight,
   X,
-  Menu
+  Menu,
+  ShieldAlert
 } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
@@ -33,6 +34,7 @@ const navItems = [
   { icon: Warehouse, label: 'Warehouses', path: '/admin/warehouses' },
   { icon: Truck, label: 'Logistics', path: '/admin/logistics' },
   { icon: Users, label: 'Customers', path: '/admin/customers' },
+  { icon: ShieldAlert, label: 'Internal Users', path: '/admin/users' },
   { icon: BarChart3, label: 'Analytics', path: '/admin/analytics' },
   { icon: Settings, label: 'Settings', path: '/admin/settings' },
 ];
@@ -148,9 +150,9 @@ export function TopBar({ title, onMenuClick }: { title: string, onMenuClick?: ()
   };
 
   const results = {
-    products: MOCK_PRODUCTS.filter(p => p.name.toLowerCase().includes(query.toLowerCase()) || p.sku.toLowerCase().includes(query.toLowerCase())).slice(0, 3),
-    orders: MOCK_ORDERS.filter(o => o.id.toLowerCase().includes(query.toLowerCase()) || o.customer.name.toLowerCase().includes(query.toLowerCase())).slice(0, 3),
-    customers: MOCK_CUSTOMERS.filter(c => c.name.toLowerCase().includes(query.toLowerCase()) || c.email.toLowerCase().includes(query.toLowerCase())).slice(0, 3)
+    products: [],
+    orders: [],
+    customers: []
   };
 
   const hasResults = results.products.length > 0 || results.orders.length > 0 || results.customers.length > 0;

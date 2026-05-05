@@ -5,7 +5,7 @@ import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 
  * Updated to handle both raw responses (Auth) and wrapped responses (Business logic).
  */
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+const baseURL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 const axiosClient: AxiosInstance = axios.create({
   baseURL,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Badge, Input } from '@admin/components/ui';
+import { Card, Button, Badge, Input, Skeleton } from '@admin/components/ui';
 import { 
   Package, 
   Truck, 
@@ -77,11 +77,7 @@ export default function Logistics() {
   };
 
   const getFilteredOrders = (stepId: string) => {
-    return MOCK_ORDERS.filter(o => {
-      if(stepId === 'processing') return o.status === 'Pending';
-      if(stepId === 'transit') return o.status === 'Processing';
-      return o.status === 'Delivered';
-    });
+    return [];
   };
 
   if (loading) {
@@ -544,6 +540,16 @@ export default function Logistics() {
                 </Button>
                 <Button className="flex-1 rounded-2xl h-14 shadow-ambient" onClick={() => setIsManagingLogistics(false)}>
                   Save Configuration
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+tion
                 </Button>
               </div>
             </motion.div>

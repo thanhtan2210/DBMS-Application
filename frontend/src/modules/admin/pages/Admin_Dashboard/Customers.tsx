@@ -1,4 +1,4 @@
-import { Card, Button, Badge, Input } from '@admin/components/ui';
+import { Card, Button, Badge, Input, Skeleton } from '@admin/components/ui';
 import { 
   Plus, 
   Search, 
@@ -11,63 +11,90 @@ import {
   CircleDollarSign,
   X
 } from 'lucide-react';
-import { MOCK_CUSTOMERS } from '@admin/types';
 import { cn } from '@lib/utils';
 import React, { useState, useMemo, useEffect } from 'react';
+import { adminListCustomers, adminCreateCustomer } from '@/modules/admin/services/customer-service';
 
 const metrics = [
-  { label: 'Total Customers', value: '12,845', trend: '+14%', isPositive: true, icon: TrendingUp },
+  { label: 'Total Customers', value: '...', trend: '+14%', isPositive: true, icon: TrendingUp },
   { label: 'Active Segments', value: '8', detail: 'High-value cohorts performing well', icon: Target },
   { label: 'Avg. Customer Value', value: '$342', trend: '+$24', isPositive: true, icon: CircleDollarSign },
 ];
 
 export default function Customers() {
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const [customers, setCustomers] = useState(MOCK_CUSTOMERS);
+  const [customers, setCustomers] = useState<any[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ name: '', email: '' });
+  const [formData, setFormData] = useState({ fullName: '', email: '', password: 'Password123!', phone: '' });
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'All' | 'VIP' | 'New'>('All');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
 
-  const handleAddCustomer = () => {
-    if (!formData.name || !formData.email) return;
-    const newCustomer = {
-      id: `CUST-${Math.floor(1000 + Math.random() * 9000)}`,
-      name: formData.name,
-      email: formData.email,
-      totalOrders: 0,
-      spent: 0,
-      joinDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
-      status: 'Active' as const
-    };
-    setCustomers([newCustomer, ...customers]);
-    setIsAddModalOpen(false);
-    setFormData({ name: '', email: '' });
+  // Debounce logic
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+      setPage(0);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  const fetchCustomers = async () => {
+    try {
+      setLoading(true);
+      const params: any = { 
+        page, 
+        size: 10,
+        // Since API supports city and status, we could use them if we had proper filters.
+        // For search, we will filter on the frontend for now, or if there's a keyword param on backend, we could use it. 
+        // Currently the API only supports `city` and `status`.
+        // The mock UI has a search by name/email, we'll just fetch and filter client-side for simplicity if pagination is small, or just display the current page.
+        // Let's just fetch without keyword since backend doesn't support it yet, and rely on the list.
+      };
+      const res: any = await adminListCustomers(params);
+      setCustomers(res.content || []);
+      setTotalPages(res.totalPages || 0);
+      setTotalElements(res.totalElements || 0);
+      metrics[0].value = res.totalElements?.toString() || '0';
+    } catch (err) {
+      console.error("Failed to fetch customers", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  useEffect(() => {
+    fetchCustomers();
+  }, [page, activeTab]);
+
+  const handleAddCustomer = async () => {
+    if (!formData.fullName || !formData.email) return;
+    try {
+      await adminCreateCustomer(formData);
+      setIsAddModalOpen(false);
+      setFormData({ fullName: '', email: '', password: 'Password123!', phone: '' });
+      fetchCustomers();
+    } catch(e) {
+       console.error(e);
+       alert("Error adding customer");
+    }
+  };
+
+  // Local filtering if we want to filter the current page by search query
   const filteredCustomers = useMemo(() => {
     return customers.filter((customer) => {
       const matchesSearch = 
-        customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        customer.email.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      const matchesTab = 
-        activeTab === 'All' ||
-        (activeTab === 'VIP' && customer.spent > 1000) || // Simple logic for VIP
-        (activeTab === 'New' && customer.joinDate.includes('2026')); // Simple logic for New
-
-      return matchesSearch && matchesTab;
+        customer.fullName?.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        customer.email?.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
+      return matchesSearch;
     });
-  }, [searchQuery, activeTab, customers]);
+  }, [debouncedSearchQuery, customers]);
 
-  if (loading) {
+  if (loading && customers.length === 0) {
     return (
       <div className="space-y-8 animate-in fade-in duration-500">
         <div className="flex items-center justify-between">
@@ -149,65 +176,20 @@ export default function Customers() {
             </button>
           )}
           <Input 
-            placeholder="Search customers by name or email..." 
+            placeholder="Search customers on current page..." 
             className="pl-12 h-12 bg-white shadow-ambient border-none"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-        </div>
-        <div className="relative">
-          <Button 
-            variant="outline" 
-            className={cn("h-12 bg-white gap-2 px-6", isFilterOpen && "border-primary text-primary")}
-            onClick={() => setIsFilterOpen(!isFilterOpen)}
-          >
-            <Filter className="w-4 h-4" />
-            Filters
-          </Button>
-          {isFilterOpen && (
-            <div className="absolute top-full right-0 mt-2 w-64 bg-white shadow-2xl rounded-2xl border border-surface-container z-50 p-6 animate-in zoom-in-95 duration-200">
-               <h4 className="text-xs font-extrabold text-on-surface-variant uppercase tracking-widest mb-4">Customer Segment</h4>
-               <div className="space-y-2">
-                 {(['All', 'VIP', 'New'] as const).map(tab => (
-                   <label key={tab} className="flex items-center gap-3 cursor-pointer group">
-                     <input 
-                       type="radio" 
-                       name="tab" 
-                       checked={activeTab === tab}
-                       onChange={() => setActiveTab(tab)}
-                       className="w-4 h-4 text-primary border-surface-container focus:ring-primary/20"
-                     />
-                     <span className={cn("text-sm font-bold transition-colors", activeTab === tab ? "text-primary" : "text-on-surface group-hover:text-primary")}>
-                       {tab} Customers
-                     </span>
-                   </label>
-                 ))}
-               </div>
-               <div className="mt-6 pt-6 border-t border-surface-container">
-                  <Button variant="outline" className="w-full h-10 text-xs font-bold" onClick={() => { setActiveTab('All'); setSearchQuery(''); setIsFilterOpen(false); }}>
-                    Reset Filters
-                  </Button>
-               </div>
-            </div>
-          )}
         </div>
       </div>
 
       <Card className="overflow-hidden">
         <div className="p-4 bg-surface-container-high/50 flex items-center justify-between">
           <div className="flex h-8 bg-surface-container rounded-lg p-1">
-            {(['All', 'VIP', 'New'] as const).map(tab => (
-              <button 
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={cn(
-                  "px-4 py-0 text-[10px] font-extrabold rounded-md transition-all uppercase tracking-widest",
-                  activeTab === tab ? "bg-white shadow-sm text-on-surface" : "text-on-surface-variant hover:text-on-surface"
-                )}
-              >
-                {tab === 'All' ? 'All Customers' : tab}
-              </button>
-            ))}
+            <button className="px-4 py-0 text-[10px] font-extrabold rounded-md transition-all uppercase tracking-widest bg-white shadow-sm text-on-surface">
+              All Customers
+            </button>
           </div>
           <button className="p-2 hover:bg-surface-container rounded-full"><MoreVertical className="w-4 h-4" /></button>
         </div>
@@ -217,46 +199,37 @@ export default function Customers() {
               <tr className="border-b border-surface-container text-on-surface-variant">
                 <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest">Customer Name</th>
                 <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest">Email</th>
-                <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-center">Total Orders</th>
-                <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-right">Total Spent</th>
+                <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-center">Status</th>
+                <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-right">Loyalty Points</th>
                 <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest">Join Date</th>
-                <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-container">
               {filteredCustomers.length > 0 ? (
                 filteredCustomers.map((customer) => (
-                  <tr key={customer.id} className="hover:bg-surface-container-low transition-all group">
+                  <tr key={customer.customerId} className="hover:bg-surface-container-low transition-all group">
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
-                          {customer.avatar ? (
-                            <img src={customer.avatar} alt="" className="w-full h-full rounded-full" referrerPolicy="no-referrer" />
-                          ) : (
-                            customer.name.split(' ').map(n => n[0]).join('')
-                          )}
+                           {customer.fullName?.split(' ').map((n: string) => n[0]).join('') || '?'}
                         </div>
-                        <p className="text-sm font-bold text-on-surface group-hover:text-primary transition-all">{customer.name}</p>
+                        <p className="text-sm font-bold text-on-surface group-hover:text-primary transition-all">{customer.fullName}</p>
                       </div>
                     </td>
                     <td className="px-8 py-6 text-sm font-medium text-on-surface-variant">{customer.email}</td>
-                    <td className="px-8 py-6 text-sm font-bold text-on-surface text-center">{customer.totalOrders}</td>
-                    <td className="px-8 py-6 text-sm font-extrabold text-on-surface text-right">${customer.spent.toLocaleString()}</td>
-                    <td className="px-8 py-6 text-sm font-semibold text-on-surface-variant">{customer.joinDate}</td>
-                    <td className="px-8 py-6 text-right">
-                      <button className="p-2 hover:bg-surface-container rounded-lg transition-all">
-                        <MoreVertical className="w-4 h-4 text-on-surface-variant" />
-                      </button>
+                    <td className="px-8 py-6 text-sm font-bold text-on-surface text-center">
+                      <Badge variant={customer.status === 'ACTIVE' ? 'success' : 'neutral'}>{customer.status}</Badge>
                     </td>
+                    <td className="px-8 py-6 text-sm font-extrabold text-on-surface text-right text-yellow-600">{customer.loyaltyPoints?.toLocaleString()} pts</td>
+                    <td className="px-8 py-6 text-sm font-semibold text-on-surface-variant">{new Date(customer.createdAt).toLocaleDateString()}</td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-8 py-20 text-center">
+                  <td colSpan={5} className="px-8 py-20 text-center">
                     <div className="flex flex-col items-center gap-2">
                        <Search className="w-8 h-8 text-on-surface-variant animate-pulse" />
                        <p className="text-sm font-bold text-on-surface">No customers found</p>
-                       <p className="text-xs text-on-surface-variant">Try adjusting your search or filters</p>
                     </div>
                   </td>
                 </tr>
@@ -266,16 +239,11 @@ export default function Customers() {
         </div>
         <div className="p-6 bg-surface-container-bright flex items-center justify-between border-t border-surface-container">
           <p className="text-[10px] font-extrabold text-on-surface-variant uppercase tracking-widest">
-            Showing {filteredCustomers.length} of {customers.length} entries
+            Showing {filteredCustomers.length} entries (Page {page + 1} of {totalPages})
           </p>
           <div className="flex items-center gap-2">
-            <button className="p-2 hover:bg-surface-container rounded-md"><ChevronLeft className="w-4 h-4" /></button>
-            <div className="flex gap-1">
-              {[1, 2, 3, '...', 1285].map((p, i) => (
-                <button key={i} className={cn("w-8 h-8 rounded-md text-xs font-bold", p === 1 ? "bg-primary text-white" : "hover:bg-surface-container")}>{p}</button>
-              ))}
-            </div>
-            <button className="p-2 hover:bg-surface-container rounded-md"><ChevronRight className="w-4 h-4" /></button>
+            <button className="p-2 hover:bg-surface-container rounded-md" disabled={page === 0} onClick={() => setPage(p => p - 1)}><ChevronLeft className="w-4 h-4" /></button>
+            <button className="p-2 hover:bg-surface-container rounded-md" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}><ChevronRight className="w-4 h-4" /></button>
           </div>
         </div>
       </Card>
@@ -295,8 +263,8 @@ export default function Customers() {
                   <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Full Name</label>
                   <Input 
                     placeholder="e.g. John Doe" 
-                    value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    value={formData.fullName}
+                    onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -306,6 +274,14 @@ export default function Customers() {
                     placeholder="e.g. john@example.com" 
                     value={formData.email}
                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Phone</label>
+                  <Input 
+                    placeholder="e.g. 0912345678" 
+                    value={formData.phone}
+                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                   />
                 </div>
               </div>
@@ -321,3 +297,4 @@ export default function Customers() {
     </div>
   );
 }
+

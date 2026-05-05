@@ -1,29 +1,70 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { useAuthStore } from "@/store/useAuthStore";
-import { User, Mail, Phone, MapPin, Camera, Save, ArrowLeft, AlertTriangle } from "lucide-react";
-import { useProfileLogic } from "@/hooks/useProfileLogic";
+import { User, Mail, Phone, MapPin, Camera, Save, ArrowLeft, AlertTriangle, Package, LogOut } from "lucide-react";
+import { getCustomerProfile, updateCustomerProfile, CustomerProfileDTO } from "@/modules/admin/services/customer-service";
+import { getCustomerAddresses, AddressDTO } from "@/modules/admin/services/address-service";
 
 export function Profile() {
-  const { user } = useAuthStore();
-  const { 
-    formData, setFormData, photoURL, handleAvatarChange, 
-    validatePhone, handleSubmitProfile, isSaving, isDeleting, 
-    showDeleteConfirm, setShowDeleteConfirm, deletePassword, 
-    setDeletePassword, handleDeleteAccount, message 
-  } = useProfileLogic();
+  const { user, logout } = useAuthStore();
+  const navigate = useNavigate();
+  
+  const [profile, setProfile] = useState<CustomerProfileDTO | null>(null);
+  const [addresses, setAddresses] = useState<AddressDTO[]>([]);
+  const [formData, setFormData] = useState({ fullName: "", phone: "", address: "" });
+  const [isSaving, setIsSaving] = useState(false);
+  const [message, setMessage] = useState({ type: "", text: "" });
 
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const customerIdMap: Record<string, number> = {
+    'alice@email.com': 2,
+    'bob@email.com': 3,
+    'carol@email.com': 4
+  };
+  const customerId = user ? (customerIdMap[user.email] || 2) : 2;
+
+  useEffect(() => {
+    if (user) {
+      getCustomerProfile(customerId).then(data => {
+        setProfile(data);
+        setFormData({
+          fullName: data.fullName || "",
+          phone: data.phone || "",
+          address: ""
+        });
+      }).catch(console.error);
+
+      getCustomerAddresses(customerId).then(data => {
+        setAddresses(data);
+      }).catch(console.error);
+    }
+  }, [user, customerId]);
 
   if (!user) {
     return (
-      <div className="container-custom py-20 text-center">
-        <h2 className="text-2xl font-bold mb-4">Please log in to view your profile.</h2>
-        <Link to="/" className="text-stellar-accent underline">Return to Home</Link>
+      <div className="container-custom py-40 flex flex-col items-center text-center">
+        <h1 className="text-4xl font-bold mb-6">Identity Required</h1>
+        <Link to="/login" className="bg-stellar-accent text-white px-10 py-5 rounded-full font-bold uppercase tracking-widest text-xs">
+           Sign In
+        </Link>
       </div>
     );
   }
+
+  const handleSubmitProfile = async () => {
+    setIsSaving(true);
+    try {
+      await updateCustomerProfile(customerId, {
+        fullName: formData.fullName,
+        phone: formData.phone
+      });
+      setMessage({ type: "success", text: "Profile updated successfully!" });
+    } catch (err) {
+      setMessage({ type: "error", text: "Failed to update profile." });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="min-h-screen pt-32 pb-20 bg-slate-50/30">
@@ -35,35 +76,27 @@ export function Profile() {
         <div className="bg-white rounded-[3rem] border border-stellar-border overflow-hidden shadow-sm">
           <div className="h-48 bg-stellar-accent relative">
              <div className="absolute -bottom-16 left-12">
-               <div className="relative group">
-                 <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  onChange={handleAvatarChange} 
-                  className="hidden" 
-                  accept="image/*"
-                 />
                  <img 
-                  src={photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`} 
+                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`} 
                   alt={formData.fullName || "User"} 
                   className="w-32 h-32 rounded-3xl border-8 border-white object-cover bg-white shadow-lg"
                  />
-                 <button 
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity"
-                 >
-                   <Camera className="text-white w-8 h-8" />
-                 </button>
-               </div>
              </div>
           </div>
 
           <div className="pt-24 pb-12 px-12">
             <div className="flex justify-between items-start mb-12">
               <div>
-                <h1 className="text-4xl font-bold tracking-tighter uppercase mb-2">{formData.fullName || "Architect Account"}</h1>
-                <p className="text-stellar-muted text-sm italic">Managing your design specifications and delivery details.</p>
+                <h1 className="text-4xl font-bold tracking-tighter uppercase mb-2">{formData.fullName || "Account"}</h1>
+                <p className="text-stellar-muted text-sm italic">Loyalty Points: <span className="font-bold text-stellar-accent">{profile?.loyaltyPoints || 0}</span></p>
+              </div>
+              <div className="flex gap-4">
+                 <Link to="/orders" className="flex items-center gap-2 px-6 py-3 bg-slate-100 text-stellar-accent rounded-full font-bold uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-colors">
+                    <Package className="w-4 h-4" /> My Orders
+                 </Link>
+                 <button onClick={() => { logout(); navigate('/'); }} className="flex items-center gap-2 px-6 py-3 bg-red-50 text-red-500 rounded-full font-bold uppercase tracking-widest text-[10px] hover:bg-red-100 transition-colors">
+                    <LogOut className="w-4 h-4" /> Logout
+                 </button>
               </div>
             </div>
 
@@ -103,30 +136,13 @@ export function Profile() {
                     <input 
                       type="tel" 
                       value={formData.phone}
-                      onChange={(e) => {
-                        if (validatePhone(e.target.value)) setFormData({...formData, phone: e.target.value});
-                      }}
+                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
                       className="w-full bg-slate-50/50 border border-[#eef2f6] rounded-xl pl-12 pr-5 py-4 focus:ring-1 focus:ring-stellar-accent outline-none text-sm" 
                       placeholder="+1 (555) 000-0000"
                     />
                   </div>
                 </div>
-              </div>
-
-              <div className="space-y-6">
-                <div>
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-[#8fa3b0] mb-3 block">Shipping Address</label>
-                  <div className="relative">
-                    <MapPin className="absolute left-4 top-5 w-4 h-4 text-slate-300" />
-                    <textarea 
-                      value={formData.address}
-                      onChange={(e) => setFormData({...formData, address: e.target.value})}
-                      className="w-full bg-slate-50/50 border border-[#eef2f6] rounded-xl pl-12 pr-5 py-4 focus:ring-1 focus:ring-stellar-accent outline-none text-sm min-h-[150px] resize-none" 
-                      placeholder="Enter your primary delivery address..."
-                    />
-                  </div>
-                </div>
-
+                
                 {message.text && (
                   <motion.div 
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -142,76 +158,37 @@ export function Profile() {
                   disabled={isSaving}
                   className="w-full bg-stellar-accent text-white py-5 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-slate-800 transition-all flex items-center justify-center gap-3 shadow-lg shadow-stellar-accent/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isSaving ? (
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : <Save className="w-4 h-4" />}
-                  Save Profile Changes
+                  {isSaving ? "Saving..." : "Save Profile Changes"}
                 </button>
+
+              </div>
+
+              <div className="space-y-6">
+                <h3 className="text-xl font-bold mb-4">Saved Addresses</h3>
+                {addresses.length > 0 ? (
+                  <div className="space-y-4">
+                    {addresses.map(addr => (
+                      <div key={addr.addressId} className="p-5 border border-stellar-border rounded-2xl bg-slate-50 flex justify-between items-start">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-bold text-sm">{addr.receiverName}</span>
+                            {addr.isDefault && <span className="bg-stellar-accent text-white text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-widest">Default</span>}
+                          </div>
+                          <p className="text-xs text-stellar-muted">{addr.phone}</p>
+                          <p className="text-xs text-stellar-muted mt-2">{addr.street}, {addr.ward}</p>
+                          <p className="text-xs text-stellar-muted">{addr.district}, {addr.city}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-stellar-muted italic">No addresses saved yet.</p>
+                )}
               </div>
             </div>
           </div>
         </div>
-
-        <div className="mt-12 flex justify-between items-center px-4">
-           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Account ID: {user.email.substring(0, 8)}...</p>
-           <button 
-            onClick={() => setShowDeleteConfirm(true)}
-            className="text-[10px] text-red-400 font-bold uppercase tracking-widest hover:text-red-600 transition-colors"
-           >
-            Request Account Deletion
-           </button>
-        </div>
       </div>
-
-      <AnimatePresence>
-        {showDeleteConfirm && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center px-6">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowDeleteConfirm(false)}
-              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-            />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-white rounded-[2rem] p-10 max-w-md w-full relative z-[201] shadow-2xl"
-            >
-              <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center text-red-500 mb-6">
-                <AlertTriangle className="w-8 h-8" />
-              </div>
-              <h3 className="text-2xl font-bold text-stellar-accent mb-4 uppercase tracking-tighter">Delete Account?</h3>
-              <p className="text-sm text-stellar-muted leading-relaxed mb-10">
-                This action is permanent and cannot be undone. All your architectural orders, design preferences, and account history will be wiped from our secure servers.
-              </p>
-              <input 
-                type="password" 
-                value={deletePassword} 
-                onChange={(e) => setDeletePassword(e.target.value)} 
-                placeholder="Confirm your password" 
-                className="w-full p-4 border border-stellar-border rounded-xl mb-6 text-sm" 
-              />
-              <div className="flex gap-4">
-                <button 
-                  onClick={() => setShowDeleteConfirm(false)}
-                  className="flex-grow py-4 bg-slate-50 text-stellar-muted rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-slate-100 transition-all"
-                >
-                  No, Keep it
-                </button>
-                <button 
-                  onClick={handleDeleteAccount}
-                  disabled={isDeleting}
-                  className="flex-grow py-4 bg-red-500 text-white rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-red-600 transition-all shadow-lg shadow-red-500/20 disabled:opacity-50"
-                >
-                  {isDeleting ? "Deleting..." : "Yes, Delete"}
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

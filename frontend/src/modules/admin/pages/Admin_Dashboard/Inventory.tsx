@@ -9,157 +9,169 @@ import {
   SlidersHorizontal,
   X,
   Upload,
-  ArrowRight
+  ArrowRight,
+  Package,
+  Trash2
 } from 'lucide-react';
-import { MOCK_PRODUCTS, Product } from '@admin/types';
+import { StorefrontProduct } from "@/types";
+import { adminListProducts, adminCreateProduct, adminUpdateProduct, adminDeleteProduct } from "@/modules/admin/services/product-service";
+import { getCategories, CategoryDTO } from "@/modules/admin/services/category-service";
+import { getBrands, BrandDTO } from "@/modules/admin/services/brand-service";
 import { cn } from '@lib/utils';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function Inventory() {
   const [loading, setLoading] = useState(true);
-  const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-
-  React.useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1000);
-    return () => clearTimeout(timer);
-  }, []);
+  const [products, setProducts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<CategoryDTO[]>([]);
+  const [brands, setBrands] = useState<BrandDTO[]>([]);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('All Categories');
-  const [sortConfig, setSortConfig] = useState<{ field: 'name' | 'price' | 'stock', order: 'asc' | 'desc' }>({
-    field: 'name',
-    order: 'asc'
-  });
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<number | null>(null);
+  const [brandFilter, setActiveBrandId] = useState<number | null>(null);
+  
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
-  const categories = ['All Categories', ...new Set(MOCK_PRODUCTS.map(p => p.category))];
+  // Debounce logic for search
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      setPage(0); // Reset về trang đầu khi tìm kiếm
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
 
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = 
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesCategory = categoryFilter === 'All Categories' || product.category === categoryFilter;
-
-    return matchesSearch && matchesCategory;
-  }).sort((a, b) => {
-    const field = sortConfig.field;
-    if (sortConfig.order === 'asc') {
-      if (a[field] < b[field]) return -1;
-      if (a[field] > b[field]) return 1;
-      return 0;
-    } else {
-      if (a[field] < b[field]) return 1;
-      if (a[field] > b[field]) return -1;
-      return 0;
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const params: any = { 
+        page, 
+        size: 10,
+        categoryId: categoryFilter || undefined,
+        brandId: brandFilter || undefined,
+        keyword: debouncedSearchTerm || undefined
+      };
+      const res: any = await adminListProducts(params);
+      setProducts(res.content || []);
+      setTotalPages(res.totalPages || 0);
+    } catch (err) {
+      console.error("Failed to fetch products", err);
+    } finally {
+      setLoading(false);
     }
-  });
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, [page, categoryFilter, brandFilter, debouncedSearchTerm]);
+
+  useEffect(() => {
+    getCategories().then(setCategories).catch(console.error);
+    getBrands().then(setBrands).catch(console.error);
+  }, []);
 
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
-      setSelectedIds(filteredProducts.map(p => p.id));
+      setSelectedIds(products.map(p => p.productId));
     } else {
       setSelectedIds([]);
     }
   };
 
-  const handleSelectProduct = (id: string) => {
+  const handleSelectProduct = (id: number) => {
     setSelectedIds(prev => 
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
   };
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [selectedImages, setSelectedImages] = useState<string[]>([]);
-  const [isDragging, setIsDragging] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    sku: '',
+    productName: '',
+    brandId: 0,
+    categoryId: 0,
+    description: '',
+    price: 0,
+    costPrice: 0,
+    variants: [] as any[]
+  });
 
   const openAddDrawer = () => {
     setEditingProduct(null);
-    setSelectedImages([]);
+    setFormData({
+      sku: '',
+      productName: '',
+      brandId: brands[0]?.id || 0,
+      categoryId: categories[0]?.id || 0,
+      description: '',
+      price: 0,
+      costPrice: 0,
+      variants: []
+    });
     setIsDrawerOpen(true);
   };
 
-  const openEditDrawer = (product: Product) => {
+  const openEditDrawer = (product: any) => {
     setEditingProduct(product);
-    setSelectedImages(product.image ? [product.image] : []);
+    setFormData({
+      sku: product.sku,
+      productName: product.productName,
+      brandId: brands.find(b => b.name === product.brandName)?.id || 0,
+      categoryId: categories.find(c => c.name === product.categoryName)?.id || 0,
+      description: product.description || '',
+      price: product.price,
+      costPrice: product.costPrice || 0,
+      variants: product.variants || []
+    });
     setIsDrawerOpen(true);
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = () => {
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const files = Array.from(e.dataTransfer.files);
-    handleFiles(files);
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
-      handleFiles(files);
+  const handleSaveProduct = async () => {
+    try {
+      if (editingProduct) {
+        await adminUpdateProduct(editingProduct.productId, formData);
+      } else {
+        await adminCreateProduct(formData);
+      }
+      setIsDrawerOpen(false);
+      fetchProducts();
+    } catch (err) {
+      console.error("Failed to save product", err);
+      alert("Lỗi khi lưu sản phẩm");
     }
   };
 
-  const handleFiles = (files: File[]) => {
-    const imageUrls = files.map(file => URL.createObjectURL(file));
-    setSelectedImages(prev => [...prev, ...imageUrls].slice(0, 4)); // Limit to 4 for demo
+  const addVariant = () => {
+    setFormData(prev => ({
+      ...prev,
+      variants: [...prev.variants, { variantName: '', color: '', size: '', priceOverride: 0, barcode: `BC-${Date.now()}` }]
+    }));
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-8 animate-in fade-in duration-500">
-        <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            <Skeleton className="h-9 w-40" />
-            <Skeleton className="h-4 w-64" />
-          </div>
-          <div className="flex gap-3">
-            <Skeleton className="h-10 w-32" />
-            <Skeleton className="h-10 w-40" />
-          </div>
-        </div>
+  const removeVariant = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      variants: prev.variants.filter((_, i) => i !== index)
+    }));
+  };
 
-        <Card className="p-6">
-           <div className="flex items-center gap-4 mb-6">
-              <Skeleton className="h-10 flex-1" />
-              <Skeleton className="h-10 w-24" />
-           </div>
-           <div className="space-y-4">
-              {[1, 2, 3, 4, 5, 6].map(i => (
-                <Skeleton key={i} className="h-20 w-full" />
-              ))}
-           </div>
-        </Card>
-      </div>
-    );
+  if (loading && products.length === 0) {
+    return <div className="p-20 text-center text-stellar-muted italic">Loading products...</div>;
   }
 
-  const removeImage = (index: number) => {
-    setSelectedImages(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const closeDrawer = () => setIsDrawerOpen(false);
-
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
+    <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-display font-extrabold text-on-surface">Manage Products</h2>
-          <p className="text-on-surface-variant mt-1">View, edit, and manage your entire product catalog.</p>
+          <p className="text-on-surface-variant mt-1">Full control over your inventory and variants.</p>
         </div>
-        <Button onClick={openAddDrawer} className="gap-2 h-11 px-6 shadow-ambient">
+        <Button onClick={openAddDrawer} className="gap-2 h-11 px-6">
           <Plus className="w-5 h-5" />
           Add New Product
         </Button>
@@ -169,7 +181,7 @@ export default function Inventory() {
         <div className="relative flex-1 group">
           <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant transition-colors group-focus-within:text-primary" />
           <Input 
-            placeholder="Search products by name, SKU, or category..." 
+            placeholder="Search products by name or SKU..." 
             className="pl-14 h-12 bg-white shadow-ambient border-none"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -178,278 +190,142 @@ export default function Inventory() {
         <div className="flex gap-2">
           <div className="relative">
             <select 
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
+              value={categoryFilter || ''}
+              onChange={(e) => setCategoryFilter(e.target.value ? parseInt(e.target.value) : null)}
               className="appearance-none h-12 bg-white border border-surface-container-high rounded-xl px-10 text-sm font-bold focus:outline-hidden focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer shadow-ambient"
             >
+              <option value="">All Categories</option>
               {categories.map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
               ))}
             </select>
             <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant pointer-events-none" />
           </div>
-          <div className="flex bg-white rounded-xl border border-surface-container-high shadow-ambient overflow-hidden">
-            <div className="relative">
-              <select 
-                value={sortConfig.field}
-                onChange={(e) => setSortConfig(prev => ({ ...prev, field: e.target.value as any }))}
-                className="appearance-none h-12 bg-transparent pl-10 pr-8 text-sm font-bold focus:outline-hidden cursor-pointer"
-              >
-                <option value="name">Name</option>
-                <option value="price">Price</option>
-                <option value="stock">Stock</option>
-              </select>
-              <SlidersHorizontal className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant pointer-events-none" />
-            </div>
-            <div className="w-px bg-surface-container-high my-2" />
-            <button 
-              onClick={() => setSortConfig(prev => ({ ...prev, order: prev.order === 'asc' ? 'desc' : 'asc' }))}
-              className="h-12 px-4 hover:bg-surface-container transition-colors font-bold text-xs flex items-center gap-2"
-            >
-              {sortConfig.order === 'asc' ? 'Ascending' : 'Descending'}
-            </button>
-          </div>
         </div>
       </div>
 
-      <Card className="overflow-hidden border border-surface-container-high/50">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="bg-surface-container-low text-on-surface-variant">
-                <th className="w-12 px-8 py-5">
-                   <input 
-                     type="checkbox" 
-                     className="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary/20" 
-                     checked={filteredProducts.length > 0 && selectedIds.length === filteredProducts.length}
-                     onChange={handleSelectAll}
-                   />
-                </th>
-                <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest">Product Details</th>
-                <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest">Category</th>
-                <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest">SKU</th>
-                <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest">Price</th>
-                <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest">Stock Level</th>
-                <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-right">Actions</th>
+      <Card className="overflow-hidden">
+        <table className="w-full text-left">
+          <thead>
+            <tr className="bg-surface-container-low text-on-surface-variant">
+              <th className="w-12 px-8 py-5">
+                 <input 
+                   type="checkbox" 
+                   checked={products.length > 0 && selectedIds.length === products.length}
+                   onChange={handleSelectAll}
+                 />
+              </th>
+              <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest">Product</th>
+              <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest">SKU</th>
+              <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-right">Price</th>
+              <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-surface-container">
+            {products.map((p) => (
+              <tr key={p.productId} className="hover:bg-primary/5 transition-all group">
+                <td className="px-8 py-6">
+                  <input 
+                    type="checkbox" 
+                    checked={selectedIds.includes(p.productId)}
+                    onChange={() => handleSelectProduct(p.productId)}
+                  />
+                </td>
+                <td className="px-8 py-6">
+                  <p className="text-sm font-bold text-on-surface">{p.productName}</p>
+                  <p className="text-[10px] text-on-surface-variant uppercase font-bold">{p.categoryName}</p>
+                </td>
+                <td className="px-8 py-6 text-xs font-mono">{p.sku}</td>
+                <td className="px-8 py-6 text-sm font-extrabold text-right">${p.price.toLocaleString()}</td>
+                <td className="px-8 py-6 text-right">
+                  <Button variant="tertiary" size="sm" onClick={() => openEditDrawer(p)}>Edit</Button>
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-surface-container">
-              {filteredProducts.length > 0 ? (
-                filteredProducts.map((product) => (
-                  <tr key={product.id} className="hover:bg-primary/5 transition-all group">
-                    <td className="px-8 py-6">
-                      <input 
-                        type="checkbox" 
-                        className="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary/20" 
-                        checked={selectedIds.includes(product.id)}
-                        onChange={() => handleSelectProduct(product.id)}
-                      />
-                    </td>
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-xl bg-surface-container flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
-                          {product.image ? (
-                            <img src={product.image} alt={product.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                          ) : (
-                            <div className="w-8 h-8 text-on-surface-variant/20"><Package className="w-8 h-8" /></div>
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-on-surface group-hover:text-primary transition-colors">{product.name}</p>
-                          <p className="text-xs text-on-surface-variant font-medium mt-0.5">{product.category}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-8 py-6 text-sm font-medium text-on-surface-variant">{product.category}</td>
-                    <td className="px-8 py-6 text-xs font-mono font-medium text-on-surface-variant">{product.sku}</td>
-                    <td className="px-8 py-6 text-sm font-extrabold text-on-surface">${product.price.toFixed(2)}</td>
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-2">
-                         <span className={cn(
-                           "w-2 h-2 rounded-full",
-                           product.status === 'In Stock' ? 'bg-green-500' : product.status === 'Low Stock' ? 'bg-amber-500' : 'bg-red-500'
-                         )} />
-                         <span className="text-xs font-bold text-on-surface-variant">
-                           {product.stock} in stock
-                         </span>
-                      </div>
-                    </td>
-                    <td className="px-8 py-6 text-right">
-                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="tertiary" size="sm" onClick={() => openEditDrawer(product)}>Edit</Button>
-                        <button className="p-2 hover:bg-surface-container rounded-lg transition-colors inline-block">
-                          <MoreVertical className="w-4 h-4 text-on-surface-variant" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={7} className="px-8 py-20 text-center">
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="p-4 bg-surface-container rounded-full">
-                        <Search className="w-8 h-8 text-on-surface-variant" />
-                      </div>
-                      <p className="text-sm font-bold text-on-surface">No products found</p>
-                      <p className="text-xs text-on-surface-variant max-w-xs mx-auto">
-                        Try adjusting your search or filters to find what you're looking for.
-                      </p>
-                      <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setCategoryFilter('All Categories'); }}>
-                        Clear all filters
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-        <div className="p-6 bg-surface-container-bright flex items-center justify-between border-t border-surface-container">
-           <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Showing {filteredProducts.length} of {products.length} products</p>
-          <div className="flex items-center gap-2">
-            <button className="p-2 hover:bg-surface-container rounded-md transition-colors disabled:opacity-30" disabled>
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button className="p-2 hover:bg-surface-container rounded-md transition-colors">
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+            ))}
+          </tbody>
+        </table>
+        
+        <div className="p-6 flex justify-between items-center border-t border-surface-container">
+           <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Page {page + 1} of {totalPages}</p>
+           <div className="flex gap-2">
+              <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}><ChevronLeft className="w-4 h-4"/></Button>
+              <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}><ChevronRight className="w-4 h-4"/></Button>
+           </div>
         </div>
       </Card>
 
-      {/* Product Management Drawer */}
+      {/* Product Drawer */}
       <AnimatePresence>
         {isDrawerOpen && (
           <>
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={closeDrawer}
-              className="fixed inset-0 bg-on-surface/20 backdrop-blur-sm z-50"
-            />
-            <motion.div 
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 h-full w-full max-w-xl bg-white shadow-2xl z-50 overflow-y-auto"
-            >
-              <div className="p-8 h-full flex flex-col">
-                <div className="flex items-center justify-between mb-8">
-                  <h3 className="text-2xl font-display font-extrabold">
-                    {editingProduct ? 'Edit Product' : 'Add New Product'}
-                  </h3>
-                  <button onClick={closeDrawer} className="p-2 hover:bg-surface-container rounded-full transition-colors">
-                    <X className="w-6 h-6" />
-                  </button>
-                </div>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsDrawerOpen(false)} className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50" />
+            <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} className="fixed top-0 right-0 h-full w-full max-w-2xl bg-white shadow-2xl z-50 overflow-y-auto p-10">
+               <div className="flex justify-between items-center mb-10">
+                  <h3 className="text-2xl font-bold">{editingProduct ? 'Edit Product' : 'Add New Product'}</h3>
+                  <button onClick={() => setIsDrawerOpen(false)}><X className="w-6 h-6"/></button>
+               </div>
 
-                <div className="flex-1 space-y-8">
-                  <div className="space-y-4">
-                    <p className="text-[10px] font-extrabold text-on-surface-variant uppercase tracking-widest">Product Imagery</p>
-                    
-                    {selectedImages.length > 0 ? (
-                      <div className="grid grid-cols-4 gap-4">
-                        {selectedImages.map((url, index) => (
-                          <div key={index} className="relative aspect-square rounded-xl overflow-hidden group border border-surface-container-high">
-                            <img src={url} alt="" className="w-full h-full object-cover" />
-                            <button 
-                              onClick={() => removeImage(index)}
-                              className="absolute top-1 right-1 p-1 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ))}
-                        {selectedImages.length < 4 && (
-                          <button 
-                            onClick={() => fileInputRef.current?.click()}
-                            className="aspect-square rounded-xl bg-surface-container border-2 border-dashed border-outline-variant flex items-center justify-center hover:bg-surface-container-high transition-colors"
-                          >
-                            <Plus className="w-5 h-5 text-on-surface-variant" />
-                          </button>
-                        )}
-                      </div>
-                    ) : (
-                      <div 
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                        onClick={() => fileInputRef.current?.click()}
-                        className={cn(
-                          "w-full h-48 rounded-2xl border-2 border-dashed transition-all flex flex-col items-center justify-center gap-3 cursor-pointer group",
-                          isDragging 
-                            ? "bg-primary/5 border-primary ring-4 ring-primary/10" 
-                            : "bg-surface-container border-outline-variant hover:bg-surface-container-high"
-                        )}
-                      >
-                         <Upload className={cn(
-                           "w-8 h-8 transition-colors",
-                           isDragging ? "text-primary" : "text-on-surface-variant group-hover:text-primary"
-                         )} />
-                         <div className="text-center">
-                           <p className="text-sm font-bold">Click to upload or drag & drop</p>
-                           <p className="text-xs text-on-surface-variant font-medium mt-1">PNG, JPG up to 10MB</p>
-                         </div>
-                      </div>
-                    )}
-                    <input 
-                      type="file" 
-                      ref={fileInputRef} 
-                      onChange={handleFileSelect} 
-                      className="hidden" 
-                      accept="image/*" 
-                      multiple 
-                    />
-                  </div>
-
+               <div className="space-y-8">
                   <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-2 col-span-2">
-                      <label className="text-[10px] font-extrabold text-on-surface-variant uppercase tracking-widest px-1">Product Name</label>
-                      <Input placeholder="e.g. Minimalist Ceramic Vase" defaultValue={editingProduct?.name} className="h-12 bg-surface-container-low font-bold" />
+                    <div className="col-span-2">
+                       <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2 block">Product Name</label>
+                       <Input value={formData.productName} onChange={e => setFormData({...formData, productName: e.target.value})} />
                     </div>
-                    <div className="space-y-2">
-                       <label className="text-[10px] font-extrabold text-on-surface-variant uppercase tracking-widest px-1">Category</label>
-                       <select className="appearance-none w-full h-12 bg-surface-container-low rounded-xl px-4 text-sm font-bold focus:outline-hidden focus:ring-2 focus:ring-primary/40 transition-all border-none">
-                         <option>Electronics</option>
-                         <option>Furniture</option>
-                         <option>Apparel</option>
-                         <option>Home Goods</option>
+                    <div>
+                       <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2 block">SKU</label>
+                       <Input value={formData.sku} onChange={e => setFormData({...formData, sku: e.target.value})} />
+                    </div>
+                    <div>
+                       <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2 block">Category</label>
+                       <select className="w-full h-10 border rounded-lg px-3 text-sm" value={formData.categoryId} onChange={e => setFormData({...formData, categoryId: parseInt(e.target.value)})}>
+                          {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                        </select>
                     </div>
-                    <div className="space-y-2">
-                       <label className="text-[10px] font-extrabold text-on-surface-variant uppercase tracking-widest px-1">SKU</label>
-                       <Input placeholder="PRD-0000" defaultValue={editingProduct?.sku} className="h-12 bg-surface-container-low font-bold" />
+                    <div>
+                       <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2 block">Price</label>
+                       <Input type="number" value={formData.price} onChange={e => setFormData({...formData, price: parseFloat(e.target.value)})} />
                     </div>
-                    <div className="space-y-2">
-                       <label className="text-[10px] font-extrabold text-on-surface-variant uppercase tracking-widest px-1">Price (USD)</label>
-                       <Input type="number" step="0.01" defaultValue={editingProduct?.price} className="h-12 bg-surface-container-low font-bold" />
-                    </div>
-                    <div className="space-y-2">
-                       <label className="text-[10px] font-extrabold text-on-surface-variant uppercase tracking-widest px-1">Initial Stock</label>
-                       <Input type="number" defaultValue={editingProduct?.stock} className="h-12 bg-surface-container-low font-bold" />
+                    <div>
+                       <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2 block">Cost Price</label>
+                       <Input type="number" value={formData.costPrice} onChange={e => setFormData({...formData, costPrice: parseFloat(e.target.value)})} />
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-extrabold text-on-surface-variant uppercase tracking-widest px-1">Description</label>
-                    <textarea 
-                      className="w-full bg-surface-container-low rounded-xl px-4 py-3 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-primary/40 h-32 transition-all resize-none"
-                      placeholder="Enter detailed product description..."
-                    />
+                  <div>
+                     <div className="flex justify-between items-center mb-4">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Product Variants</label>
+                        <Button variant="tertiary" size="sm" onClick={addVariant}><Plus className="w-3 h-3 mr-1"/> Add Variant</Button>
+                     </div>
+                     <div className="space-y-4">
+                        {formData.variants.map((v, idx) => (
+                          <div key={idx} className="p-4 bg-slate-50 rounded-xl border border-slate-200 grid grid-cols-3 gap-4 relative">
+                             <button onClick={() => removeVariant(idx)} className="absolute -top-2 -right-2 bg-white text-red-500 border border-red-100 rounded-full p-1 shadow-sm"><X className="w-3 h-3"/></button>
+                             <div className="col-span-2">
+                                <label className="text-[9px] font-bold uppercase text-slate-400">Variant Name</label>
+                                <Input className="h-8 text-xs" value={v.variantName} onChange={e => {
+                                   const newV = [...formData.variants];
+                                   newV[idx].variantName = e.target.value;
+                                   setFormData({...formData, variants: newV});
+                                }} />
+                             </div>
+                             <div>
+                                <label className="text-[9px] font-bold uppercase text-slate-400">Color</label>
+                                <Input className="h-8 text-xs" value={v.color} onChange={e => {
+                                   const newV = [...formData.variants];
+                                   newV[idx].color = e.target.value;
+                                   setFormData({...formData, variants: newV});
+                                }} />
+                             </div>
+                          </div>
+                        ))}
+                     </div>
                   </div>
-                </div>
 
-                <div className="pt-8 border-t border-surface-container flex gap-4 mt-8">
-                  <Button variant="outline" className="flex-1 h-14 bg-white" onClick={closeDrawer}>Cancel</Button>
-                  <Button className="flex-2 h-14 gap-2" onClick={closeDrawer}>
-                    {editingProduct ? 'Update Product' : 'Create Product'}
-                    <ArrowRight className="w-5 h-5" />
-                  </Button>
-                </div>
-              </div>
+                  <div className="pt-10 flex gap-4">
+                     <Button variant="outline" className="flex-1 h-12 bg-white" onClick={() => setIsDrawerOpen(false)}>Cancel</Button>
+                     <Button className="flex-1 h-12" onClick={handleSaveProduct}>{editingProduct ? 'Update' : 'Create'}</Button>
+                  </div>
+               </div>
             </motion.div>
           </>
         )}
@@ -457,5 +333,3 @@ export default function Inventory() {
     </div>
   );
 }
-
-import { Package } from 'lucide-react';

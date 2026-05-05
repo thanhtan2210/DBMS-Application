@@ -7,9 +7,11 @@ import {
   X, 
   ShoppingCart, 
   User, 
-  LogOut
+  LogOut,
+  Package
 } from "lucide-react";
 import { PRODUCTS, StorefrontProduct } from "@/types";
+import { getActiveProducts } from "@/modules/admin/services/product-service";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useCart } from "@lib/CartContext";
 
@@ -39,11 +41,11 @@ export function Header() {
 
   useEffect(() => {
     if (searchQuery.trim().length >= 1) {
-      const filtered = PRODUCTS.filter(p => 
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.category.toLowerCase().includes(searchQuery.toLowerCase())
-      ).slice(0, 5);
-      setSuggestions(filtered);
+      getActiveProducts({ keyword: searchQuery, size: 5 })
+        .then((res: any) => {
+          setSuggestions(res.content || []);
+        })
+        .catch(console.error);
     } else {
       setSuggestions([]);
     }
@@ -109,13 +111,18 @@ export function Header() {
           </Link>
         
         {isAuthenticated ? (
-          <div className="hidden md:flex items-center gap-4">
-            <span className="text-[10px] uppercase font-bold tracking-widest text-stellar-muted truncate max-w-[100px]">{user?.email}</span>
+          <div className="hidden md:flex items-center gap-6">
+            <Link to="/profile" className="text-[10px] uppercase font-bold tracking-widest text-stellar-muted hover:text-stellar-accent transition-colors flex items-center gap-1.5">
+               <User className="w-3.5 h-3.5" /> Profile
+            </Link>
+            <Link to="/orders" className="text-[10px] uppercase font-bold tracking-widest text-stellar-muted hover:text-stellar-accent transition-colors flex items-center gap-1.5">
+               <Package className="w-3.5 h-3.5" /> Orders
+            </Link>
             <button 
               onClick={() => { logout(); navigate('/login'); }} 
-              className="text-[10px] uppercase font-bold tracking-widest text-red-500 hover:text-red-700 transition-colors"
+              className="text-[10px] uppercase font-bold tracking-widest text-red-500 hover:text-red-700 transition-colors flex items-center gap-1.5"
             >
-              Sign Out
+              <LogOut className="w-3.5 h-3.5" /> Sign Out
             </button>
           </div>
         ) : (
@@ -148,7 +155,11 @@ export function Header() {
               <Link to="/shop" onClick={() => setIsMenuOpen(false)}>Shop</Link>
               <Link to="/support" onClick={() => setIsMenuOpen(false)}>Support</Link>
               {isAuthenticated ? (
-                <button onClick={() => { logout(); setIsMenuOpen(false); navigate('/login'); }} className="text-left text-red-500">Sign Out</button>
+                <>
+                  <Link to="/profile" onClick={() => setIsMenuOpen(false)}>Profile</Link>
+                  <Link to="/orders" onClick={() => setIsMenuOpen(false)}>My Orders</Link>
+                  <button onClick={() => { logout(); setIsMenuOpen(false); navigate('/login'); }} className="text-left text-red-500">Sign Out</button>
+                </>
               ) : (
                 <Link to="/login" onClick={() => setIsMenuOpen(false)}>Sign In</Link>
               )}

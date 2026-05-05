@@ -1,56 +1,102 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { getCartItems, addItemToCart, updateCartItemQuantity, removeItemFromCart, selectCartItem } from "@/modules/admin/services/cart-service";
+import { useAuthStore } from "@/store/useAuthStore";
 
 interface CartItem {
-  id: number;
-  name: string;
-  price: number;
+  cartItemId: number; 
+  variant: {
+    variantId: number;
+    variantName: string;
+    product?: {
+      productName: string;
+    }
+  };
   quantity: number;
-  image: string;
+  unitPrice: number;
+  selectedFlag: boolean;
 }
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (item: CartItem) => void;
-  removeFromCart: (id: number) => void;
-  updateQuantity: (id: number, quantity: number) => void;
-  clearCart: () => void;
+  refreshCart: () => void;
+  addToCart: (variantId: number, quantity: number) => Promise<void>;
+  removeFromCart: (itemId: number) => Promise<void>;
+  updateQuantity: (itemId: number, quantity: number) => Promise<void>;
+  selectItem: (itemId: number, selected: boolean) => Promise<void>;
   totalItems: number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [cart, setCart] = useState<CartItem[]>([
-    { id: 1, name: "Sculptural Lounge Chair", price: 1250, quantity: 1, image: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?q=80&w=2787&auto=format&fit=crop" },
-    { id: 4, name: "Geometric Study Desk", price: 2100, quantity: 1, image: "https://images.unsplash.com/photo-1518455027359-f3f816b1a23a?q=80&w=2787&auto=format&fit=crop" }
-  ]);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const { user } = useAuthStore();
+  
+  // Mapping email sang customerId cho mục đích demo
+  const customerIdMap: Record<string, number> = {
+    'alice@email.com': 2,
+    'bob@email.com': 3,
+    'carol@email.com': 4
+  };
+  const customerId = user ? (customerIdMap[user.email] || 2) : 2;
 
-  const addToCart = (item: CartItem) => {
-    setCart(prev => {
-      const existing = prev.find(i => i.id === item.id);
-      if (existing) {
-        return prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + item.quantity } : i);
-      }
-      return [...prev, item];
-    });
+  const refreshCart = async () => {
+    try {
+      const response: any = await getCartItems();
+      // Bóc tách dữ liệu linh hoạt (array thẳng hoặc bọc trong data)
+      const data = response?.data || response;
+      const cartItems = Array.isArray(data) ? data : [];
+      setCart(cartItems);
+    } catch (e: any) {
+      setCart([]);
+    }
   };
 
-  const removeFromCart = (id: number) => {
-    setCart(prev => prev.filter(item => item.id !== id));
+  useEffect(() => {
+    refreshCart();
+  }, [user]);
+
+  const addToCart = async (variantId: number, quantity: number) => {
+    try {
+      await addItemToCart({ variantId, quantity });
+      await refreshCart();
+    } catch (error) {
+      console.error("Lỗi khi thêm vào giỏ hàng:", error);
+      throw error;
+    }
   };
 
-  const updateQuantity = (id: number, quantity: number) => {
-    setCart(prev => prev.map(item => item.id === id ? { ...item, quantity: Math.max(1, quantity) } : item));
+  const removeFromCart = async (itemId: number) => {
+    try {
+      await removeItemFromCart(itemId);
+      await refreshCart();
+    } catch (error) {
+      console.error("Lỗi khi xóa khỏi giỏ hàng:", error);
+    }
   };
 
-  const clearCart = () => {
-    setCart([]);
+  const updateQuantity = async (itemId: number, quantity: number) => {
+    try {
+      await updateCartItemQuantity(itemId, Math.max(1, quantity));
+      await refreshCart();
+    } catch (error) {
+      console.error("Lỗi khi cập nhật số lượng:", error);
+    }
   };
 
-  const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
+  const selectItem = async (itemId: number, selected: boolean) => {
+    try {
+      await selectCartItem(itemId, selected);
+      await refreshCart();
+    } catch (error) {
+      console.error("Lỗi khi chọn sản phẩm:", error);
+    }
+  };
+
+  const totalItems = Array.isArray(cart) ? cart.reduce((acc, item) => acc + (item.quantity || 0), 0) : 0;
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, totalItems }}>
+    <CartContext.Provider value={{ cart, refreshCart, addToCart, removeFromCart, updateQuantity, selectItem, totalItems }}>
       {children}
     </CartContext.Provider>
   );
