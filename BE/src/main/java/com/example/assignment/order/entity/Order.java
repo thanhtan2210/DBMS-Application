@@ -66,4 +66,7 @@ public class Order extends BaseEntity {
 
     @Column(name = "total_amount", nullable = false, precision = 15, scale = 2)
     private BigDecimal totalAmount;
+
+    @OneToMany(mappedBy = "order", fetch = FetchType.LAZY)
+    private java.util.List<OrderItem> orderItems;
 }

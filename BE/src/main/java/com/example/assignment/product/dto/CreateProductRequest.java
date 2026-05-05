@@ -37,5 +37,18 @@ public class CreateProductRequest {
     @Schema(description = "Cost / purchase price (optional, used for profit calculation)", example = "150000.00")
     @DecimalMin("0.00")
     private BigDecimal costPrice;
+
+    private java.util.List<VariantRequest> variants;
+
+    @Data
+    public static class VariantRequest {
+        @NotBlank
+        private String variantName;
+        private String color;
+        private String size;
+        private BigDecimal priceOverride;
+        @NotBlank
+        private String barcode;
+    }
 }
 

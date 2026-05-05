@@ -23,12 +23,16 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     // FR-02: Composite-condition query — by category + status + price range
     @Query("""
-            SELECT p FROM Product p
+            SELECT DISTINCT p FROM Product p
+            LEFT JOIN p.variants v
             WHERE (:categoryId IS NULL OR p.category.categoryId = :categoryId)
               AND (:brandId IS NULL OR p.brand.brandId = :brandId)
               AND (:status IS NULL OR p.status = :status)
               AND (:minPrice IS NULL OR p.price >= :minPrice)
               AND (:maxPrice IS NULL OR p.price <= :maxPrice)
+              AND (:keyword IS NULL OR (LOWER(p.productName) LIKE LOWER(CONCAT('%', CAST(:keyword AS string), '%'))
+                   OR LOWER(p.sku) LIKE LOWER(CONCAT('%', CAST(:keyword AS string), '%'))
+                   OR LOWER(v.barcode) LIKE LOWER(CONCAT('%', CAST(:keyword AS string), '%'))))
               AND p.deletedAt IS NULL
             """)
     Page<Product> findByFilters(
@@ -37,6 +41,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             @Param("status") String status,
             @Param("minPrice") BigDecimal minPrice,
             @Param("maxPrice") BigDecimal maxPrice,
+            @Param("keyword") String keyword,
             Pageable pageable);
 
     // FR-02: Join query — products with brand, category, inventory
@@ -95,18 +100,21 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             Pageable pageable);
 
     @Query(value = """
-            SELECT * FROM products p
+            SELECT *, (p.search_embedding <=> cast(:embedding as vector)) as distance 
+            FROM products p
             WHERE (:categoryId IS NULL OR p.category_id = :categoryId)
               AND (:brandId IS NULL OR p.brand_id = :brandId)
               AND p.status = 'ACTIVE'
               AND p.deleted_at IS NULL
-            ORDER BY p.search_embedding <-> cast(:embedding as vector)
+              AND (:embedding IS NULL OR (p.search_embedding <=> cast(:embedding as vector)) < 0.5)
+            ORDER BY distance ASC
             """, countQuery = """
             SELECT count(*) FROM products p
             WHERE (:categoryId IS NULL OR p.category_id = :categoryId)
               AND (:brandId IS NULL OR p.brand_id = :brandId)
               AND p.status = 'ACTIVE'
               AND p.deleted_at IS NULL
+              AND (:embedding IS NULL OR (p.search_embedding <=> cast(:embedding as vector)) < 0.5)
             """, nativeQuery = true)
     Page<Product> searchStoreProductsSemantic(
             @Param("embedding") String embedding,

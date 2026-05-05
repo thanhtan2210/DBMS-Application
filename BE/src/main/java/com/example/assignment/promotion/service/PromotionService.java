@@ -1,26 +1,26 @@
 package com.example.assignment.promotion.service;
 
 import com.example.assignment.order.entity.Order;
-import com.example.assignment.order.entity.OrderItem;
-import com.example.assignment.order.repository.OrderItemRepository;
 import com.example.assignment.order.repository.OrderRepository;
+import com.example.assignment.promotion.dto.PromotionRequest;
+import com.example.assignment.promotion.dto.PromotionResponse;
 import com.example.assignment.promotion.entity.OrderPromotion;
 import com.example.assignment.promotion.entity.Promotion;
-import com.example.assignment.promotion.entity.PromotionCondition;
 import com.example.assignment.promotion.repository.OrderPromotionRepository;
-import com.example.assignment.promotion.repository.PromotionConditionRepository;
 import com.example.assignment.promotion.repository.PromotionRepository;
+import com.example.assignment.shared.dto.PageResponse;
 import com.example.assignment.shared.enums.DiscountType;
 import com.example.assignment.shared.exception.BusinessRuleViolationException;
 import com.example.assignment.shared.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * FR-06: Discounts and Promotions validation and application.
@@ -30,10 +30,8 @@ import java.util.List;
 public class PromotionService {
 
     private final PromotionRepository promotionRepository;
-    private final PromotionConditionRepository conditionRepository;
     private final OrderPromotionRepository orderPromotionRepository;
     private final OrderRepository orderRepository;
-    private final OrderItemRepository orderItemRepository;
 
     @Transactional(readOnly = true)
     public BigDecimal validateAndCalculateDiscount(String code, BigDecimal orderAmount) {
@@ -97,4 +95,50 @@ public class PromotionService {
         }
         return discount.min(orderAmount);
     }
+
+    @Transactional
+    public PromotionResponse createPromotion(PromotionRequest request) {
+        if (promotionRepository.findByPromotionCode(request.getPromotionCode()).isPresent()) {
+            throw new BusinessRuleViolationException("Promotion code already exists");
+        }
+        Promotion promotion = new Promotion();
+        updateEntityFromRequest(promotion, request);
+        return PromotionResponse.from(promotionRepository.save(promotion));
+    }
+
+    @Transactional
+    public PromotionResponse updatePromotion(Long id, PromotionRequest request) {
+        Promotion promotion = promotionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Promotion", id));
+        updateEntityFromRequest(promotion, request);
+        return PromotionResponse.from(promotionRepository.save(promotion));
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<PromotionResponse> listPromotions(Pageable pageable) {
+        Page<Promotion> page = promotionRepository.findAll(pageable);
+        return PageResponse.from(page.map(PromotionResponse::from));
+    }
+
+    @Transactional
+    public void deletePromotion(Long id) {
+        Promotion promotion = promotionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Promotion", id));
+        promotion.setStatus("DELETED");
+        promotionRepository.save(promotion);
+    }
+
+    private void updateEntityFromRequest(Promotion promotion, PromotionRequest request) {
+        promotion.setPromotionCode(request.getPromotionCode());
+        promotion.setPromotionName(request.getPromotionName());
+        promotion.setDiscountType(request.getDiscountType());
+        promotion.setDiscountValue(request.getDiscountValue());
+        promotion.setMinimumOrderAmount(request.getMinimumOrderAmount());
+        promotion.setMaxDiscountAmount(request.getMaxDiscountAmount());
+        promotion.setUsageLimit(request.getUsageLimit());
+        promotion.setStartTime(request.getStartTime());
+        promotion.setEndTime(request.getEndTime());
+        promotion.setStatus(request.getStatus() != null ? request.getStatus() : "ACTIVE");
+    }
 }
+

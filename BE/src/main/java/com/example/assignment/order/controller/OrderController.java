@@ -55,6 +55,19 @@ public class OrderController {
                 .body(ApiResponse.success("Order placed", orderService.placeOrder(request)));
     }
 
+    @Operation(summary = "List all orders",
+               description = "Returns a paginated list of all orders, ordered by creation date descending.")
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Order list returned")
+    })
+    @GetMapping("/api/orders")
+    public ResponseEntity<ApiResponse<org.springframework.data.domain.Page<OrderResponse>>> getAllOrders(
+            @Parameter(description = "Search keyword (order code or customer name)") @RequestParam(required = false) String keyword,
+            @org.springframework.data.web.PageableDefault(size = 20, sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) 
+            org.springframework.data.domain.Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.success(orderService.getAllOrders(keyword, pageable)));
+    }
+
     @Operation(summary = "Get order by ID")
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Order found"),

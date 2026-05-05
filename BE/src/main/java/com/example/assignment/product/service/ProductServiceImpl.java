@@ -6,12 +6,15 @@ import com.example.assignment.product.dto.ProductResponse;
 import com.example.assignment.product.entity.Brand;
 import com.example.assignment.product.entity.Category;
 import com.example.assignment.product.entity.Product;
+import com.example.assignment.product.entity.ProductVariant;
 import com.example.assignment.product.repository.BrandRepository;
 import com.example.assignment.product.repository.CategoryRepository;
+import com.example.assignment.product.repository.InventoryRepository;
 import com.example.assignment.product.repository.ProductRepository;
-import com.example.assignment.shared.dto.PageResponse;
+import com.example.assignment.product.repository.ProductVariantRepository;
 import com.example.assignment.shared.exception.DuplicateResourceException;
 import com.example.assignment.shared.exception.ResourceNotFoundException;
+import com.example.assignment.shared.dto.PageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import dev.langchain4j.model.embedding.EmbeddingModel;
 
@@ -31,6 +35,8 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final BrandRepository brandRepository;
     private final CategoryRepository categoryRepository;
+    private final ProductVariantRepository variantRepository;
+    private final InventoryRepository inventoryRepository;
     private final EmbeddingModel embeddingModel;
 
     // ── Private helpers ─────────────────────────────────────────────────────────
@@ -102,6 +108,20 @@ public class ProductServiceImpl implements ProductService {
                 .build();
 
         productRepository.save(product);
+
+        if (request.getVariants() != null) {
+            List<ProductVariant> variants = request.getVariants().stream().map(v -> ProductVariant.builder()
+                    .product(product)
+                    .variantName(v.getVariantName())
+                    .color(v.getColor())
+                    .size(v.getSize())
+                    .priceOverride(v.getPriceOverride())
+                    .barcode(v.getBarcode())
+                    .status("ACTIVE")
+                    .build()).collect(Collectors.toList());
+            variantRepository.saveAll(variants);
+        }
+
         log.info("Created product: sku={}", product.getSku());
 
         embedAndSave(product);
@@ -128,9 +148,9 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public PageResponse<ProductResponse> listProducts(Long categoryId, Long brandId, String status,
-                                                       BigDecimal minPrice, BigDecimal maxPrice, Pageable pageable) {
+                                                       BigDecimal minPrice, BigDecimal maxPrice, String keyword, Pageable pageable) {
         return PageResponse.from(
-                productRepository.findByFilters(categoryId, brandId, status, minPrice, maxPrice, pageable)
+                productRepository.findByFilters(categoryId, brandId, status, minPrice, maxPrice, keyword, pageable)
                         .map(ProductResponse::from));
     }
 
@@ -141,16 +161,20 @@ public class ProductServiceImpl implements ProductService {
             try {
                 String vectorStr = generateEmbedding(keyword);
                 if (vectorStr != null) {
-                    return PageResponse.from(
-                            productRepository.searchStoreProductsSemantic(vectorStr, categoryId, brandId, pageable)
-                                    .map(ProductResponse::from)
-                    );
+                    org.springframework.data.domain.Page<Product> semanticResults = 
+                            productRepository.searchStoreProductsSemantic(vectorStr, categoryId, brandId, pageable);
+                    
+                    // Nếu tìm kiếm theo Vector có kết quả, trả về ngay
+                    if (semanticResults.hasContent()) {
+                        return PageResponse.from(semanticResults.map(ProductResponse::from));
+                    }
                 }
             } catch (Exception e) {
-                log.warn("Semantic search failed or not available, falling back to ILIKE: {}", e.getMessage());
+                log.warn("Semantic search failed, falling back to ILIKE: {}", e.getMessage());
             }
         }
 
+        // Fallback: Tìm kiếm theo kiểu truyền thống (LIKE) nếu Vector search không ra hoặc không có keyword
         return PageResponse.from(
                 productRepository.searchStoreProductsIlike(keyword, categoryId, brandId, pageable)
                         .map(ProductResponse::from)

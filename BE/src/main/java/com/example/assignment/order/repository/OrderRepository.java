@@ -10,7 +10,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -20,9 +19,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     Optional<Order> findByOrderCode(String orderCode);
 
-    // FR-10: Single-condition — orders by status
-    Page<Order> findByOrderStatus(OrderStatus status, Pageable pageable);
-
     List<Order> findByCustomer_CustomerId(Long customerId);
 
     // FR-10: Composite-condition — by status + date range + payment status
@@ -30,26 +26,30 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             SELECT o FROM Order o
             WHERE (:orderStatus IS NULL OR o.orderStatus = :orderStatus)
               AND (:paymentStatus IS NULL OR o.paymentStatus = :paymentStatus)
-              AND (:from IS NULL OR o.createdAt >= :from)
-              AND (:to IS NULL OR o.createdAt <= :to)
+              AND (o.createdAt >= COALESCE(:from, o.createdAt))
+              AND (o.createdAt <= COALESCE(:to, o.createdAt))
+              AND (CAST(:keyword AS string) IS NULL OR CAST(:keyword AS string) = '' 
+                   OR LOWER(o.orderCode) LIKE LOWER(CAST(:keyword AS string)))
             """)
     Page<Order> findByFilters(
             @Param("orderStatus") OrderStatus orderStatus,
             @Param("paymentStatus") PaymentStatus paymentStatus,
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to,
+            @Param("keyword") String keyword,
             Pageable pageable);
 
-    // FR-03: Join query — order with customer + items + products
     @Query("""
             SELECT DISTINCT o FROM Order o
-            JOIN FETCH o.customer c
-            JOIN FETCH c.user u
+            LEFT JOIN FETCH o.customer c
+            LEFT JOIN FETCH c.user u
+            LEFT JOIN FETCH o.orderItems oi
+            LEFT JOIN FETCH oi.variant v
+            LEFT JOIN FETCH v.product p
             WHERE o.orderId = :id
             """)
-    Optional<Order> findByIdWithCustomer(@Param("id") Long id);
+    Optional<Order> findByIdWithDetails(@Param("id") Long id);
 
-    // FR-03: Subquery — customers whose latest order total exceeds their average
     @Query(value = """
             SELECT o.* FROM orders o
             WHERE o.customer_id IN (
@@ -61,16 +61,16 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             """, nativeQuery = true)
     List<Order> findOrdersFromHighValueCustomers();
 
-    // FR-09: Aggregate — total revenue, order count in date range
     @Query("""
             SELECT COUNT(o), SUM(o.totalAmount), SUM(o.discountAmount)
             FROM Order o
             WHERE o.createdAt BETWEEN :from AND :to
-              AND o.orderStatus NOT IN ('CANCELLED', 'PAYMENT_FAILED')
+              AND o.orderStatus NOT IN (:excludedStatuses)
             """)
-    Object[] aggregateRevenueByDateRange(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
-
-    // FR-10: Aggregate — count by status
+    List<Object[]> aggregateRevenueByDateRange(
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to,
+            @Param("excludedStatuses") List<OrderStatus> excludedStatuses);
     @Query("SELECT o.orderStatus, COUNT(o) FROM Order o GROUP BY o.orderStatus")
     List<Object[]> countByOrderStatus();
 }

@@ -41,7 +41,10 @@ public class CartServiceImpl implements CartService {
                 .orElseGet(() -> {
                     CustomerProfile profile = customerProfileRepository.findById(customerId)
                             .orElseThrow(() -> new ResourceNotFoundException("Customer", customerId));
-                    Cart newCart = Cart.builder().customer(profile).status(CartStatus.ACTIVE).build();
+                    Cart newCart = Cart.builder()
+                            .customer(profile)
+                            .status(CartStatus.ACTIVE)
+                            .build();
                     return cartRepository.save(newCart);
                 });
     }
@@ -50,6 +53,10 @@ public class CartServiceImpl implements CartService {
     @Transactional
     public CartItem addItem(Long customerId, AddCartItemRequest request) {
         Cart cart = getOrCreateActiveCart(customerId);
+        
+        // Log để debug xem cart đã có ID chưa
+        log.info("Adding item to cart ID: {}", cart.getCartId());
+
         ProductVariant variant = variantRepository.findById(request.getVariantId())
                 .orElseThrow(() -> new ResourceNotFoundException("ProductVariant", request.getVariantId()));
 

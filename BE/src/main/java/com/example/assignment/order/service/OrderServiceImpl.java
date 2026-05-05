@@ -19,6 +19,8 @@ import com.example.assignment.user.repository.AddressRepository;
 import com.example.assignment.user.repository.CustomerProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -118,10 +120,8 @@ public class OrderServiceImpl implements OrderService {
         ).collect(Collectors.toList());
         orderItemRepository.saveAll(orderItems);
 
-        // Mark cart as converted
-        Cart cart = selectedItems.get(0).getCart();
-        cart.setStatus(CartStatus.CONVERTED);
-        cartRepository.save(cart);
+        // Remove selected items from cart
+        cartItemRepository.deleteAll(selectedItems);
 
         log.info("Order placed: code={}, customer={}", orderCode, customer.getCustomerId());
         return OrderResponse.from(order);
@@ -129,8 +129,15 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
+    public Page<OrderResponse> getAllOrders(String keyword, Pageable pageable) {
+        String searchKeyword = (keyword != null && !keyword.isBlank()) ? "%" + keyword + "%" : null;
+        return orderRepository.findByFilters(null, null, null, null, searchKeyword, pageable).map(OrderResponse::from);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public OrderResponse getOrderById(Long orderId) {
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findByIdWithDetails(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
         return OrderResponse.from(order);
     }

@@ -40,4 +40,10 @@ public class PublicProductController {
         return ResponseEntity.ok(ApiResponse.success(
                 productService.searchStoreProducts(keyword, categoryId, brandId, pageable)));
     }
+
+    @Operation(summary = "Get product details", description = "Returns details of a specific product by ID.")
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<ProductResponse>> getProductById(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(productService.getProductById(id)));
+    }
 }

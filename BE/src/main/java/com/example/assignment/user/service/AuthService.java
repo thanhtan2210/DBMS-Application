@@ -20,6 +20,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -71,7 +74,10 @@ public class AuthService {
                 User user = userRepository.findByEmail(request.getEmail())
                                 .orElseThrow(() -> new IllegalArgumentException("Invalid email or password."));
 
-                String token = jwtService.generateToken(new CustomUserDetails(user));
+                Map<String, Object> extraClaims = new HashMap<>();
+                extraClaims.put("role", "ROLE_" + user.getRole().name());
+
+                String token = jwtService.generateToken(extraClaims, new CustomUserDetails(user));
 
                 return new AuthResponse(token);
         }

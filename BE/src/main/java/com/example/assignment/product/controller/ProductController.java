@@ -56,9 +56,10 @@ public class ProductController {
             @Parameter(description = "Filter by status: ACTIVE | INACTIVE | DISCONTINUED") @RequestParam(required = false) String status,
             @Parameter(description = "Minimum price (inclusive)") @RequestParam(required = false) BigDecimal minPrice,
             @Parameter(description = "Maximum price (inclusive)") @RequestParam(required = false) BigDecimal maxPrice,
+            @Parameter(description = "Search keyword (name or SKU)") @RequestParam(required = false) String keyword,
             @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.success(
-                productService.listProducts(categoryId, brandId, status, minPrice, maxPrice, pageable)));
+                productService.listProducts(categoryId, brandId, status, minPrice, maxPrice, keyword, pageable)));
     }
 
     @Operation(summary = "Get product by ID")
