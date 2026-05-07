@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "motion/react";
 import { StorefrontProduct } from "@/types";
 import { getActiveProducts } from "@/modules/admin/services/product-service";
-import { getCategories, CategoryDTO } from "@/modules/admin/services/category-service";
+import { getPublicCategories, CategoryDTO } from "@/modules/admin/services/category-service";
 import { getBrands, BrandDTO } from "@/modules/admin/services/brand-service";
 import { ProductCardSkeleton } from "@ui/LoadingStates";
 
@@ -19,7 +19,7 @@ export default function Shop() {
   const [brands, setBrands] = useState<BrandDTO[]>([]);
 
   useEffect(() => {
-    getCategories().then(res => setCategories(res)).catch(console.error);
+    getPublicCategories().then(res => setCategories(res)).catch(console.error);
     getBrands().then(res => setBrands(res)).catch(console.error);
   }, []);
 
@@ -69,11 +69,11 @@ export default function Shop() {
           </button>
           {categories.map(cat => (
             <button
-              key={cat.id}
-              onClick={() => setActiveCategoryId(cat.id)}
-              className={`px-6 py-2 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all whitespace-nowrap ${activeCategoryId === cat.id ? "bg-stellar-accent text-white shadow-lg" : "bg-stellar-card text-stellar-muted hover:bg-stellar-border"}`}
+              key={cat.categoryId}
+              onClick={() => setActiveCategoryId(cat.categoryId)}
+              className={`px-6 py-2 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all whitespace-nowrap ${activeCategoryId === cat.categoryId ? "bg-stellar-accent text-white shadow-lg" : "bg-stellar-card text-stellar-muted hover:bg-stellar-border"}`}
             >
-              {cat.name}
+              {cat.categoryName}
             </button>
           ))}
         </div>

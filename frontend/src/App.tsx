@@ -98,7 +98,7 @@ function AdminLayout() {
                 <Route index element={<AdminDashboard />} />
                 <Route path="inventory" element={<AdminInventory />} />
                 <Route path="orders" element={<AdminOrders />} />
-                <Route path="logistics" element={<ComingSoon />} />
+                <Route path="logistics" element={<AdminLogistics />} />
                 <Route path="customers" element={<AdminCustomers />} />
                 <Route path="analytics" element={<AdminAnalytics />} />
                 <Route path="settings" element={<ComingSoon />} />
@@ -126,9 +126,9 @@ function StorefrontLayout() {
           <Route index element={<StorefrontHome />} />
           <Route path="shop" element={<Shop />} />
           <Route path="product/:id" element={<ProductDetail />} />
-          <Route path="categories" element={<ComingSoon />} />
-          <Route path="support" element={<ComingSoon />} />
-          <Route path="shipping" element={<ComingSoon />} />
+          <Route path="categories" element={<Categories />} />
+          <Route path="support" element={<Support />} />
+          <Route path="shipping" element={<Shipping />} />
 
           {/* GUEST ONLY ROUTES */}
           <Route element={<GuestRoute />}>
@@ -142,10 +142,10 @@ function StorefrontLayout() {
             <Route path="orders" element={<MyOrders />} />
           </Route>
 
-          <Route path="privacy" element={<ComingSoon />} />
-          <Route path="terms" element={<ComingSoon />} />
-          <Route path="returns" element={<ComingSoon />} />
-          <Route path="accessibility" element={<ComingSoon />} />
+          <Route path="privacy" element={<Privacy />} />
+          <Route path="terms" element={<Terms />} />
+          <Route path="returns" element={<Returns />} />
+          <Route path="accessibility" element={<Accessibility />} />
         </Routes>
       </main>
       <Footer />

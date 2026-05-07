@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { StorefrontProduct } from "@/types";
 import { getActiveProducts } from "@/modules/admin/services/product-service";
-import { getCategories, CategoryDTO } from "@/modules/admin/services/category-service";
+import { getPublicCategories, CategoryDTO } from "@/modules/admin/services/category-service";
 
 export function Home() {
   const [products, setProducts] = useState<StorefrontProduct[]>([]);
@@ -16,7 +16,8 @@ export function Home() {
         const prodRes = await getActiveProducts({ size: 4 });
         setProducts(prodRes.content || []);
 
-        const catRes = await getCategories();
+        const catRes = await getPublicCategories();
+        console.log("Fetched categories:", catRes);
         setCategories(catRes || []);
       } catch (err) {
         console.error("Failed to load home data", err);
