@@ -127,9 +127,9 @@ public class CartServiceImpl implements CartService {
     @Override
     @Transactional(readOnly = true)
     public List<CartItem> getCartItems(Long customerId) {
-        Cart cart = cartRepository.findByCustomer_CustomerIdAndStatus(customerId, CartStatus.ACTIVE)
-                .orElseThrow(() -> new ResourceNotFoundException("Active cart for customer", customerId));
-        return cartItemRepository.findByCartIdWithDetails(cart.getCartId());
+        return cartRepository.findByCustomer_CustomerIdAndStatus(customerId, CartStatus.ACTIVE)
+                .map(cart -> cartItemRepository.findByCartIdWithDetails(cart.getCartId()))
+                .orElse(List.of());
     }
 
     @Override

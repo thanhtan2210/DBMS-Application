@@ -85,10 +85,16 @@ public class OrderController {
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Order list returned"),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Customer not found")
     })
-    @GetMapping("/api/customers/{customerId}/orders")
-    public ResponseEntity<ApiResponse<List<OrderResponse>>> getCustomerOrders(
-            @Parameter(description = "Customer ID", required = true) @PathVariable Long customerId) {
-        return ResponseEntity.ok(ApiResponse.success(orderService.getOrdersByCustomer(customerId)));
+    @GetMapping("/{id}/invoice")
+    public ResponseEntity<byte[]> downloadInvoice(@PathVariable Long id) {
+        String invoiceContent = "INVOICE FOR ORDER ID: " + id + "\n" +
+                "Date: " + java.time.LocalDateTime.now() + "\n" +
+                "Status: COMPLETED\n" +
+                "Thank you for shopping with us!";
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=invoice_" + id + ".txt")
+                .body(invoiceContent.getBytes());
     }
-}
+    }
+
 
