@@ -159,4 +159,18 @@ public class AnalyticsController {
     public ResponseEntity<ApiResponse<List<Object[]>>> getRevenueByCategory() {
         return ResponseEntity.ok(ApiResponse.success(reportService.getRevenueByCategory()));
     }
+
+    @Operation(summary = "Get daily sales stats (admin)",
+               description = "Returns daily sales summary records between two dates.")
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Daily sales returned")
+    })
+    @GetMapping("/api/admin/reports/daily-sales")
+    public ResponseEntity<ApiResponse<List<com.example.assignment.analytics.entity.SalesSummaryDaily>>> getDailySales(
+            @Parameter(description = "Start date (ISO-8601, e.g. 2025-01-01)", required = true)
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @Parameter(description = "End date (ISO-8601)", required = true)
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        return ResponseEntity.ok(ApiResponse.success(reportService.getDailySales(from, to)));
+    }
 }

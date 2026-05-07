@@ -25,6 +25,7 @@ public class ReportService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final PaymentRepository paymentRepository;
+    private final com.example.assignment.analytics.repository.SalesSummaryDailyRepository salesSummaryDailyRepository;
 
     @Transactional(readOnly = true)
     public Map<String, Object> getSalesOverview(LocalDateTime from, LocalDateTime to) {
@@ -63,7 +64,7 @@ public class ReportService {
 
     @Transactional(readOnly = true)
     public List<Object[]> getRevenueByCategory() {
-        return paymentRepository.revenueByPaymentMethod(PaymentStatus.SUCCESS);
+        return orderItemRepository.revenueByCategory();
     }
 
     @Transactional(readOnly = true)
@@ -74,5 +75,10 @@ public class ReportService {
     @Transactional(readOnly = true)
     public List<Object[]> getPaymentSuccessRate() {
         return paymentRepository.successRateByPaymentMethod();
+    }
+
+    @Transactional(readOnly = true)
+    public List<com.example.assignment.analytics.entity.SalesSummaryDaily> getDailySales(java.time.LocalDate from, java.time.LocalDate to) {
+        return salesSummaryDailyRepository.findByIdSummaryDateBetween(from, to);
     }
 }
