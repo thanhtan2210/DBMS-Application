@@ -14,7 +14,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { StorefrontProduct } from "@/types";
-import { adminListProducts, adminCreateProduct, adminUpdateProduct, adminDeleteProduct } from "@/modules/admin/services/product-service";
+import { adminListProducts, adminCreateProduct, adminUpdateProduct, adminDeleteProduct, adminDeactivateProduct } from "@/modules/admin/services/product-service";
 import { getCategories, CategoryDTO } from "@/modules/admin/services/category-service";
 import { getBrands, BrandDTO } from "@/modules/admin/services/brand-service";
 import { cn } from '@lib/utils';
@@ -106,8 +106,8 @@ export default function Inventory() {
     setFormData({
       sku: '',
       productName: '',
-      brandId: brands[0]?.id || 0,
-      categoryId: categories[0]?.id || 0,
+      brandId: brands[0]?.id || 1, // Dùng ID thực tế
+      categoryId: categories[0]?.categoryId || 1, // Dùng ID thực tế
       description: '',
       price: 0,
       costPrice: 0,
@@ -133,16 +133,30 @@ export default function Inventory() {
 
   const handleSaveProduct = async () => {
     try {
+      // Đảm bảo brandId và categoryId là số hợp lệ
+      const payload = {
+        ...formData,
+        productName: formData.productName, // Đảm bảo trường này được map rõ ràng
+        brandId: Number(formData.brandId) || null,
+        categoryId: Number(formData.categoryId) || null,
+        variants: formData.variants.map((v: any) => ({
+          ...v,
+          priceOverride: v.priceOverride ? Number(v.priceOverride) : null
+        }))
+      };
+      
+      console.log("Submitting payload:", payload);
+
       if (editingProduct) {
-        await adminUpdateProduct(editingProduct.productId, formData);
+        await adminUpdateProduct(editingProduct.productId, payload);
       } else {
-        await adminCreateProduct(formData);
+        await adminCreateProduct(payload);
       }
       setIsDrawerOpen(false);
       fetchProducts();
     } catch (err) {
       console.error("Failed to save product", err);
-      alert("Lỗi khi lưu sản phẩm");
+      alert("Lỗi khi lưu sản phẩm. Vui lòng kiểm tra lại các trường bắt buộc.");
     }
   };
 
@@ -171,10 +185,28 @@ export default function Inventory() {
           <h2 className="text-3xl font-display font-extrabold text-on-surface">Manage Products</h2>
           <p className="text-on-surface-variant mt-1">Full control over your inventory and variants.</p>
         </div>
-        <Button onClick={openAddDrawer} className="gap-2 h-11 px-6">
-          <Plus className="w-5 h-5" />
-          Add New Product
-        </Button>
+        <div className="flex gap-4">
+          {selectedIds.length > 0 && (
+            <Button 
+              variant="destructive" 
+              className="gap-2 h-11 px-6"
+              onClick={async () => {
+                if (confirm(`Are you sure you want to delete ${selectedIds.length} products?`)) {
+                  await Promise.all(selectedIds.map(id => adminDeleteProduct(id)));
+                  setSelectedIds([]);
+                  fetchProducts();
+                }
+              }}
+            >
+              <Trash2 className="w-5 h-5" />
+              Delete Selected ({selectedIds.length})
+            </Button>
+          )}
+          <Button onClick={openAddDrawer} className="gap-2 h-11 px-6">
+            <Plus className="w-5 h-5" />
+            Add New Product
+          </Button>
+        </div>
       </div>
 
       <div className="flex items-center gap-4">
@@ -196,7 +228,7 @@ export default function Inventory() {
             >
               <option value="">All Categories</option>
               {categories.map(cat => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
+                <option key={cat.categoryId} value={cat.categoryId}>{cat.categoryName}</option>
               ))}
             </select>
             <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant pointer-events-none" />
@@ -218,6 +250,7 @@ export default function Inventory() {
               <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest">Product</th>
               <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest">SKU</th>
               <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-right">Price</th>
+              <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-right">Status</th>
               <th className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-right">Actions</th>
             </tr>
           </thead>
@@ -238,7 +271,15 @@ export default function Inventory() {
                 <td className="px-8 py-6 text-xs font-mono">{p.sku}</td>
                 <td className="px-8 py-6 text-sm font-extrabold text-right">${p.price.toLocaleString()}</td>
                 <td className="px-8 py-6 text-right">
+                  <Badge variant={p.status === 'ACTIVE' ? 'success' : 'neutral'}>{p.status}</Badge>
+                </td>
+                <td className="px-8 py-6 text-right flex justify-end gap-2">
                   <Button variant="tertiary" size="sm" onClick={() => openEditDrawer(p)}>Edit</Button>
+                  {p.status === 'ACTIVE' ? (
+                      <Button variant="outline" size="sm" onClick={() => adminDeactivateProduct(p.productId).then(fetchProducts)}>Deactivate</Button>
+                  ) : (
+                      <Button variant="tertiary" size="sm" onClick={() => adminUpdateProduct(p.productId, {...p, status: 'ACTIVE'}).then(fetchProducts)}>Activate</Button>
+                  )}
                 </td>
               </tr>
             ))}
@@ -269,7 +310,10 @@ export default function Inventory() {
                   <div className="grid grid-cols-2 gap-6">
                     <div className="col-span-2">
                        <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2 block">Product Name</label>
-                       <Input value={formData.productName} onChange={e => setFormData({...formData, productName: e.target.value})} />
+                       <Input value={formData.productName} onChange={e => {
+                         console.log("Updating productName to:", e.target.value);
+                         setFormData({...formData, productName: e.target.value});
+                       }} />
                     </div>
                     <div>
                        <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2 block">SKU</label>
@@ -277,8 +321,9 @@ export default function Inventory() {
                     </div>
                     <div>
                        <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2 block">Category</label>
-                       <select className="w-full h-10 border rounded-lg px-3 text-sm" value={formData.categoryId} onChange={e => setFormData({...formData, categoryId: parseInt(e.target.value)})}>
-                          {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                       <select className="w-full h-10 border rounded-lg px-3 text-sm" value={formData.categoryId || ''} onChange={e => setFormData({...formData, categoryId: parseInt(e.target.value)})}>
+                          <option value="">Select Category</option>
+                          {categories && categories.map(c => <option key={c.categoryId} value={c.categoryId}>{c.categoryName}</option>)}
                        </select>
                     </div>
                     <div>

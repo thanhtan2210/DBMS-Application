@@ -76,6 +76,7 @@ export default function Orders() {
 
   const selectedOrder = orders.find(o => o.orderId === selectedOrderId);
 
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'PENDING_PAYMENT': return <Badge variant="info" className="bg-slate-100 text-slate-600 border-slate-200">Pending Payment</Badge>;
@@ -129,9 +130,9 @@ export default function Orders() {
               <tbody className="divide-y divide-surface-container">
                 {orders.map((order) => (
                   <tr 
-                    key={order.id} 
-                    className={cn("hover:bg-primary/5 cursor-pointer transition-all", selectedOrderId === order.id ? "bg-primary/5 shadow-inner" : "")}
-                    onClick={() => setSelectedOrderId(order.id)}
+                    key={order.orderId} 
+                    className={cn("hover:bg-primary/5 cursor-pointer transition-all", selectedOrderId === order.orderId ? "bg-primary/5 shadow-inner" : "")}
+                    onClick={() => setSelectedOrderId(order.orderId)}
                   >
                     <td className="px-6 py-5 text-sm font-bold text-primary">{order.orderCode}</td>
                     <td className="px-6 py-5">
@@ -256,14 +257,13 @@ export default function Orders() {
                     <span className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Total Valuation</span>
                     <span className="text-3xl font-black text-stellar-accent">${selectedOrder.totalAmount?.toLocaleString()}</span>
                  </div>
-                 <div className="group relative">
-                   <Button variant="outline" className="w-full gap-2 h-14 border-surface-container-high text-on-surface-variant opacity-50 cursor-not-allowed" disabled>
-                      <FileText className="w-4 h-4"/> Download Invoice
-                   </Button>
-                   <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-3 py-1 bg-on-surface text-white text-[10px] font-bold rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                      Coming soon: PDF Generation
-                   </div>
-                 </div>
+                 <Button 
+                   onClick={() => window.open(`http://localhost:8080/api/orders/${selectedOrder.orderId}/invoice`, '_blank')}
+                   variant="outline" 
+                   className="w-full gap-2 h-14 border-surface-container-high text-on-surface-variant hover:bg-surface-container-low transition-all"
+                 >
+                    <FileText className="w-4 h-4"/> Download Invoice
+                 </Button>
               </div>
             </div>
           ) : (

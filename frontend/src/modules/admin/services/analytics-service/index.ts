@@ -14,3 +14,13 @@ export const getConversionFunnel = async (from: string, to: string) => {
   const response: any = await axiosClient.get('/admin/analytics/funnel', { params: { from, to } });
   return response.data || response;
 };
+
+export const getRevenueByCategory = async () => {
+  const response: any = await axiosClient.get('/admin/reports/revenue-by-category');
+  return response.data || response;
+};
+
+export const getDailySales = async (from: string, to: string) => {
+  const response: any = await axiosClient.get('/admin/reports/daily-sales', { params: { from, to } });
+  return response.data || response;
+};
