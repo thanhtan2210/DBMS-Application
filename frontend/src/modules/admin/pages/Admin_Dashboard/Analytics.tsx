@@ -1,11 +1,11 @@
-import { Card, Button, Badge, Skeleton } from '@admin/components/ui';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import { Card, Button, Badge, Skeleton, Input } from '@admin/components/ui';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   LineChart,
   Line,
@@ -13,13 +13,17 @@ import {
   PieChart,
   Pie
 } from 'recharts';
-import { Download, Calendar, Filter, ArrowUpRight, ArrowDownRight, MousePointerClick, Zap, Search, ShoppingBag } from 'lucide-react';
+import { Download, Calendar, Filter, ArrowUpRight, ArrowDownRight, MousePointerClick, Zap, Search, ShoppingBag, RefreshCcw } from 'lucide-react';
 import { cn } from '@lib/utils';
 import React, { useState, useEffect } from 'react';
 import { getSalesOverview, getRevenueByCategory, getDailySales, getConversionFunnel } from '@/modules/admin/services/analytics-service';
 
 export default function Analytics() {
   const [loading, setLoading] = useState(true);
+  const [dateRange, setDateRange] = useState({
+    from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
+    to: new Date().toISOString().split('T')[0]
+  });
   const [stats, setStats] = useState({
     totalRevenue: 0,
     avgOrderValue: 0,
@@ -33,31 +37,29 @@ export default function Analytics() {
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      const fromDate = new Date();
-      fromDate.setDate(fromDate.getDate() - 30); // Last 30 days
-      const toDate = new Date();
-      
-      const fromStr = fromDate.toISOString().split('T')[0];
-      const toStr = toDate.toISOString().split('T')[0];
-      
-      const fromDateTime = fromDate.toISOString().split('.')[0];
-      const toDateTime = toDate.toISOString().split('.')[0];
+
+      const fromStr = `${dateRange.from}T00:00:00`;
+      const toStr = `${dateRange.to}T23:59:59`;
+
+      const fromDateOnly = dateRange.from;
+      const toDateOnly = dateRange.to;
 
       const [overview, daily, categories, funnel]: any = await Promise.all([
-        getSalesOverview(fromDateTime, toDateTime),
-        getDailySales(fromStr, toStr),
+        getSalesOverview(fromStr, toStr),
+        getDailySales(fromDateOnly, toDateOnly),
         getRevenueByCategory(),
-        getConversionFunnel(fromDateTime, toDateTime)
+        getConversionFunnel(fromStr, toStr)
       ]);
 
       // Process Overview
-      const totalRev = Number(overview.grossRevenue || 0);
-      const totalOrd = Number(overview.totalOrders || 0);
+      const salesData = overview?.data || overview || {};
+      const totalRev = Number(salesData.grossRevenue || 0);
+      const totalOrd = Number(salesData.totalOrders || 0);
       setStats({
         totalRevenue: totalRev,
         totalOrders: totalOrd,
         avgOrderValue: totalOrd > 0 ? totalRev / totalOrd : 0,
-        totalCustomers: Number(overview.totalCustomers || 0)
+        totalCustomers: Number(salesData.totalCustomers || 0)
       });
 
       // Process Daily Sales
@@ -70,12 +72,12 @@ export default function Analytics() {
 
       // Process Categories
       if (Array.isArray(categories)) {
-         const colors = ['#134f77', '#336791', '#ae3200', '#10b981', '#f59e0b'];
-         setCategoryData(categories.map((item, idx) => ({
-            name: item[0] || 'Uncategorized',
-            value: Number(item[1] || 0),
-            color: colors[idx % colors.length]
-         })));
+        const colors = ['#134f77', '#336791', '#ae3200', '#10b981', '#f59e0b'];
+        setCategoryData(categories.map((item, idx) => ({
+          name: item[0] || 'Uncategorized',
+          value: Number(item[1] || 0),
+          color: colors[idx % colors.length]
+        })));
       }
 
       // Process Funnel
@@ -115,7 +117,7 @@ export default function Analytics() {
           ))}
         </div>
         <Card className="p-8">
-           <Skeleton className="h-[400px] w-full" />
+          <Skeleton className="h-[400px] w-full" />
         </Card>
       </div>
     );
@@ -137,17 +139,34 @@ export default function Analytics() {
 
   return (
     <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h2 className="text-3xl font-display font-extrabold text-on-surface">Advanced Analytics</h2>
           <p className="text-on-surface-variant mt-1">Comprehensive performance breakdown using live Database records.</p>
         </div>
-        <div className="flex gap-3">
-          <Button variant="outline" className="bg-white gap-2 h-10" onClick={fetchAnalytics}>
-            <Calendar className="w-4 h-4" />
-            Refresh Data
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 bg-white p-1.5 rounded-xl border border-outline-variant shadow-sm">
+            <Input
+              type="date"
+              value={dateRange.from}
+              onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
+              className="w-40 bg-transparent border-none focus:ring-0 h-8 text-xs font-bold"
+            />
+            <span className="text-on-surface-variant font-black text-xs">TO</span>
+            <Input
+              type="date"
+              value={dateRange.to}
+              onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
+              className="w-40 bg-transparent border-none focus:ring-0 h-8 text-xs font-bold"
+            />
+          </div>
+
+          <Button variant="secondary" className="h-11 px-6 shadow-md" onClick={fetchAnalytics}>
+            <RefreshCcw className="w-4 h-4" />
+            Sync Data
           </Button>
-          <Button className="gap-2 h-10">
+
+          <Button className="gap-2 h-11 px-6 shadow-md">
             <Download className="w-4 h-4" />
             Export
           </Button>
@@ -181,7 +200,7 @@ export default function Analytics() {
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#666', fontWeight: 700 }} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#666', fontWeight: 700 }} tickFormatter={(v) => `$${v}`} />
-                  <Tooltip 
+                  <Tooltip
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
                   />
                   <Line type="monotone" dataKey="value" stroke="#134f77" strokeWidth={3} dot={{ r: 4, fill: '#134f77', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
@@ -258,23 +277,23 @@ export default function Analytics() {
                 { bg: 'bg-indigo-100', text: 'text-indigo-700' },
               ];
               const color = colors[idx % colors.length];
-              
+
               return (
                 <div key={event.label} className={cn("p-5 rounded-2xl flex items-center justify-between", color.bg)}>
-                   <div className="flex items-center gap-3">
-                     <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm">
-                        <Icon className={cn("w-5 h-5", color.text)} />
-                     </div>
-                     <div>
-                       <p className="text-[10px] font-extrabold text-on-surface-variant uppercase tracking-widest leading-tight">{event.label.replace('_', ' ')}</p>
-                       <p className={cn("text-xl font-black mt-0.5", color.text)}>{event.count.toLocaleString()}</p>
-                     </div>
-                   </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm">
+                      <Icon className={cn("w-5 h-5", color.text)} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-extrabold text-on-surface-variant uppercase tracking-widest leading-tight">{event.label.replace('_', ' ')}</p>
+                      <p className={cn("text-xl font-black mt-0.5", color.text)}>{event.count.toLocaleString()}</p>
+                    </div>
+                  </div>
                 </div>
               );
             })
           ) : (
-             <div className="col-span-4 py-10 text-center italic text-on-surface-variant opacity-50">No events logged in the last 30 days.</div>
+            <div className="col-span-4 py-10 text-center italic text-on-surface-variant opacity-50">No events logged in the last 30 days.</div>
           )}
         </div>
       </Card>

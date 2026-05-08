@@ -1,11 +1,11 @@
 import { cn } from '@lib/utils';
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  LayoutDashboard, 
-  Package, 
-  ShoppingCart, 
-  Users, 
-  BarChart3, 
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  Users,
+  BarChart3,
   Settings,
   Store,
   HelpCircle,
@@ -25,6 +25,7 @@ import {
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { MOCK_PRODUCTS, MOCK_ORDERS, MOCK_CUSTOMERS } from '@admin/types';
+import { useAuthStore } from '@/store/useAuthStore';
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
@@ -41,6 +42,9 @@ const navItems = [
 
 
 export function Sidebar({ isMobileOpen, onClose }: { isMobileOpen?: boolean, onClose?: () => void }) {
+  const { logout } = useAuthStore();
+  const navigate = useNavigate();
+
   return (
     <aside className={cn(
       "w-64 h-screen fixed left-0 top-0 bg-[#0d1b2a] text-white/70 flex flex-col z-60 transition-transform duration-300 shadow-2xl lg:translate-x-0",
@@ -69,8 +73,8 @@ export function Sidebar({ isMobileOpen, onClose }: { isMobileOpen?: boolean, onC
             onClick={onClose}
             className={({ isActive }) => cn(
               'group flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 relative overflow-hidden',
-              isActive 
-                ? 'bg-primary/20 text-white shadow-xs' 
+              isActive
+                ? 'bg-primary/20 text-white shadow-xs'
                 : 'hover:bg-white/5 hover:text-white'
             )}
           >
@@ -79,7 +83,7 @@ export function Sidebar({ isMobileOpen, onClose }: { isMobileOpen?: boolean, onC
                 <item.icon className={cn('w-5 h-5 transition-colors', isActive ? 'text-primary' : 'text-white/40 group-hover:text-white/60')} />
                 <span className="text-sm font-medium">{item.label}</span>
                 {isActive && (
-                  <motion.div 
+                  <motion.div
                     layoutId="activeNav"
                     className="absolute left-0 w-1 h-6 bg-primary rounded-r-full"
                   />
@@ -96,11 +100,14 @@ export function Sidebar({ isMobileOpen, onClose }: { isMobileOpen?: boolean, onC
           <HelpCircle className="w-4 h-4" />
           <span>Help Center</span>
         </button>
-        <button className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:text-white transition-colors text-red-400">
+        <button
+          onClick={() => { logout(); navigate('/login'); }}
+          className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:text-white transition-colors text-red-400"
+        >
           <LogOut className="w-4 h-4" />
           <span>Logout</span>
         </button>
-        
+
         <div className="mt-4 px-2">
           <button className="w-full bg-primary/30 hover:bg-primary/40 text-white text-xs font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-all">
             <Store className="w-4 h-4" />
@@ -125,6 +132,7 @@ export function TopBar({ title, onMenuClick }: { title: string, onMenuClick?: ()
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const navigate = useNavigate();
+  const { logout } = useAuthStore();
   const searchRef = useRef<HTMLDivElement>(null);
   const notificationsRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -166,7 +174,7 @@ export function TopBar({ title, onMenuClick }: { title: string, onMenuClick?: ()
   return (
     <header className="h-20 bg-surface/80 backdrop-blur-md sticky top-0 z-40 flex items-center justify-between px-4 sm:px-8 border-b border-surface-container">
       <div className="flex items-center gap-4">
-        <button 
+        <button
           onClick={onMenuClick}
           className="lg:hidden p-2 hover:bg-surface-container rounded-xl transition-colors"
         >
@@ -174,29 +182,29 @@ export function TopBar({ title, onMenuClick }: { title: string, onMenuClick?: ()
         </button>
         <h2 className="text-xl sm:text-2xl font-bold text-on-surface truncate max-w-[150px] sm:max-w-none">{title}</h2>
       </div>
-      
+
       <div className="flex items-center gap-6">
         <div className="relative" ref={searchRef}>
           <div className="relative group">
             <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
               <Search className="w-4 h-4 text-on-surface-variant group-focus-within:text-primary transition-colors" />
             </div>
-            <input 
-              type="text" 
+            <input
+              type="text"
               value={query}
               onChange={(e) => {
                 setQuery(e.target.value);
                 setIsOpen(true);
               }}
               onFocus={() => setIsOpen(true)}
-              placeholder="Search..." 
+              placeholder="Search..."
               className="bg-surface-container-high/60 h-11 w-40 sm:w-72 rounded-xl pl-12 pr-4 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-primary/30 transition-all border-none placeholder:text-on-surface-variant/50"
             />
           </div>
 
           <AnimatePresence>
             {isOpen && query.length > 0 && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
@@ -212,7 +220,7 @@ export function TopBar({ title, onMenuClick }: { title: string, onMenuClick?: ()
                       <div className="mb-2">
                         <p className="px-3 py-1 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Products</p>
                         {results.products.map(p => (
-                          <button 
+                          <button
                             key={p.id}
                             onClick={() => handleSelect('/admin/inventory')}
                             className="w-full flex items-center gap-3 p-2 hover:bg-surface-container rounded-xl transition-colors group text-left"
@@ -234,7 +242,7 @@ export function TopBar({ title, onMenuClick }: { title: string, onMenuClick?: ()
                       <div className="mb-2">
                         <p className="px-3 py-1 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Orders</p>
                         {results.orders.map(o => (
-                          <button 
+                          <button
                             key={o.id}
                             onClick={() => handleSelect('/admin/orders')}
                             className="w-full flex items-center gap-3 p-2 hover:bg-surface-container rounded-xl transition-colors group text-left"
@@ -256,7 +264,7 @@ export function TopBar({ title, onMenuClick }: { title: string, onMenuClick?: ()
                       <div className="mb-2">
                         <p className="px-3 py-1 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Customers</p>
                         {results.customers.map(c => (
-                          <button 
+                          <button
                             key={c.id}
                             onClick={() => handleSelect('/admin/customers')}
                             className="w-full flex items-center gap-3 p-2 hover:bg-surface-container rounded-xl transition-colors group text-left"
@@ -279,10 +287,10 @@ export function TopBar({ title, onMenuClick }: { title: string, onMenuClick?: ()
             )}
           </AnimatePresence>
         </div>
-        
+
         <div className="flex items-center gap-4">
           <div className="relative" ref={notificationsRef}>
-            <button 
+            <button
               onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
               className={cn(
                 "relative w-11 h-11 flex items-center justify-center rounded-xl transition-all group",
@@ -297,7 +305,7 @@ export function TopBar({ title, onMenuClick }: { title: string, onMenuClick?: ()
 
             <AnimatePresence>
               {isNotificationsOpen && (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -305,7 +313,7 @@ export function TopBar({ title, onMenuClick }: { title: string, onMenuClick?: ()
                 >
                   <div className="p-4 border-b border-surface-container flex items-center justify-between">
                     <h3 className="font-bold text-sm">Notifications</h3>
-                    <button 
+                    <button
                       onClick={handleMarkAllAsRead}
                       className="text-[10px] font-bold text-primary uppercase tracking-wider hover:underline"
                     >
@@ -314,7 +322,7 @@ export function TopBar({ title, onMenuClick }: { title: string, onMenuClick?: ()
                   </div>
                   <div className="max-h-[400px] overflow-y-auto">
                     {notifications.map(n => (
-                      <button 
+                      <button
                         key={n.id}
                         className={cn(
                           "w-full p-4 flex gap-3 text-left hover:bg-surface-container transition-colors relative group border-b border-surface-container/50 last:border-0",
@@ -324,14 +332,14 @@ export function TopBar({ title, onMenuClick }: { title: string, onMenuClick?: ()
                         <div className={cn(
                           "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
                           n.type === 'order' ? "bg-secondary/10 text-secondary" :
-                          n.type === 'inventory' ? "bg-amber-500/10 text-amber-500" :
-                          n.type === 'customer' ? "bg-green-500/10 text-green-500" :
-                          "bg-primary/10 text-primary"
+                            n.type === 'inventory' ? "bg-amber-500/10 text-amber-500" :
+                              n.type === 'customer' ? "bg-green-500/10 text-green-500" :
+                                "bg-primary/10 text-primary"
                         )}>
                           {n.type === 'order' ? <ShoppingCart className="w-4 h-4" /> :
-                           n.type === 'inventory' ? <Warehouse className="w-4 h-4" /> :
-                           n.type === 'customer' ? <Users className="w-4 h-4" /> :
-                           <TicketPercent className="w-4 h-4" />}
+                            n.type === 'inventory' ? <Warehouse className="w-4 h-4" /> :
+                              n.type === 'customer' ? <Users className="w-4 h-4" /> :
+                                <TicketPercent className="w-4 h-4" />}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-bold text-on-surface line-clamp-1">{n.title}</p>
@@ -345,7 +353,7 @@ export function TopBar({ title, onMenuClick }: { title: string, onMenuClick?: ()
                     ))}
                   </div>
                   <div className="p-3 bg-surface-container-low text-center">
-                    <button 
+                    <button
                       onClick={() => {
                         navigate('/admin/notifications');
                         setIsNotificationsOpen(false);
@@ -359,13 +367,13 @@ export function TopBar({ title, onMenuClick }: { title: string, onMenuClick?: ()
               )}
             </AnimatePresence>
           </div>
-          
+
           <div className="flex items-center gap-3 pl-4 border-l border-surface-container relative" ref={profileRef}>
             <div className="text-right hidden sm:block">
               <p className="text-sm font-bold text-on-surface">Admin User</p>
               <p className="text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Super Admin</p>
             </div>
-            <button 
+            <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
               className="w-10 h-10 rounded-full bg-primary/10 border-2 border-surface-container overflow-hidden hover:ring-2 hover:ring-primary/40 transition-all"
             >
@@ -393,7 +401,14 @@ export function TopBar({ title, onMenuClick }: { title: string, onMenuClick?: ()
                     <span>Support Center</span>
                   </button>
                   <div className="h-px bg-surface-container my-1 mx-1" />
-                  <button onClick={() => { setIsProfileOpen(false); }} className="w-full flex items-center gap-3 p-2.5 hover:bg-red-50 text-red-500 rounded-xl transition-colors text-left text-xs font-bold">
+                  <button
+                    onClick={() => {
+                      setIsProfileOpen(false);
+                      logout();
+                      navigate('/login');
+                    }}
+                    className="w-full flex items-center gap-3 p-2.5 hover:bg-red-50 text-red-500 rounded-xl transition-colors text-left text-xs font-bold"
+                  >
                     <LogOut className="w-4 h-4" />
                     <span>Sign Out</span>
                   </button>

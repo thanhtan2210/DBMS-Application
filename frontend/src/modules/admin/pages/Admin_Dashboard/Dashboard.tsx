@@ -1,10 +1,10 @@
-import { Card, Button, Badge, Skeleton } from '@admin/components/ui';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
-  ShoppingCart, 
-  Users, 
+import { Card, Button, Badge, Skeleton, Input } from '@admin/components/ui';
+import {
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  ShoppingCart,
+  Users,
   ArrowRightLeft,
   Clock,
   CheckCircle2,
@@ -13,15 +13,16 @@ import {
   ChevronDown,
   Download,
   Calendar,
-  Box
+  Box,
+  Filter
 } from 'lucide-react';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   AreaChart,
   Area
@@ -37,6 +38,11 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
 
+  const [dateRange, setDateRange] = useState({
+    from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
+    to: new Date().toISOString().split('T')[0]
+  });
+
   const [stats, setStats] = useState({
     totalOrders: 0,
     grossRevenue: 0,
@@ -51,19 +57,17 @@ export default function Dashboard() {
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      // Fetches all time data for demonstration, you can add date pickers later
-      const fromDate = new Date();
-      fromDate.setFullYear(fromDate.getFullYear() - 1); // 1 year ago
-      const toDate = new Date();
-      
-      const fromStr = fromDate.toISOString().split('.')[0]; // remove ms
-      const toStr = toDate.toISOString().split('.')[0];
+
+      const fromStr = `${dateRange.from}T00:00:00`;
+      const toStr = `${dateRange.to}T23:59:59`;
 
       const [salesRes, topRes, funnelRes]: any = await Promise.all([
         getSalesOverview(fromStr, toStr),
         getTopProducts(fromStr, toStr, 7),
         getConversionFunnel(fromStr, toStr)
       ]);
+
+      console.log("saleRes", salesRes)
 
       setStats({
         totalOrders: salesRes.totalOrders || 0,
@@ -73,23 +77,23 @@ export default function Dashboard() {
         totalItemsSold: salesRes.totalItemsSold || 0
       });
 
-      // topRes is array of [id, name, value]
+      // topRes is array of [name, quantity, total]
       if (Array.isArray(topRes)) {
-         setTopProducts(topRes.map((item, idx) => ({
-            id: idx,
-            name: item[0],
-            quantity: item[1] || 0
-         })));
+        setTopProducts(topRes.map((item, idx) => ({
+          id: idx,
+          name: item[0] || 'Unknown',
+          quantity: item[1] || 0
+        })));
       } else if (topRes.content) {
-         setTopProducts(topRes.content);
+        setTopProducts(topRes.content);
       }
 
       // funnelRes is array of [type, count]
       if (Array.isArray(funnelRes)) {
-         setFunnelData(funnelRes.map(item => ({
-            eventType: item[0],
-            count: item[1] || 0
-         })));
+        setFunnelData(funnelRes.map(item => ({
+          eventType: item[0],
+          count: item[1] || 0
+        })));
       }
 
     } catch (err) {
@@ -158,14 +162,40 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h2 className="text-3xl font-display font-extrabold text-on-surface">Overview Dashboard</h2>
           <p className="text-on-surface-variant mt-1">Real-time snapshot of your atelier's performance.</p>
         </div>
-        <div className="flex gap-3 relative">
-          <Button 
-            className="gap-2" 
+
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 bg-surface-container-low p-1.5 rounded-xl border border-outline-variant shadow-sm">
+            <Input
+              type="date"
+              value={dateRange.from}
+              onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
+              className="w-40 bg-transparent border-none focus:ring-0 h-8 text-xs font-bold"
+            />
+            <span className="text-on-surface-variant font-black text-xs">TO</span>
+            <Input
+              type="date"
+              value={dateRange.to}
+              onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
+              className="w-40 bg-transparent border-none focus:ring-0 h-8 text-xs font-bold"
+            />
+          </div>
+
+          <Button
+            variant="secondary"
+            onClick={fetchAnalytics}
+            className="h-11 px-6 shadow-md"
+          >
+            <Filter className="w-4 h-4" />
+            Apply Filter
+          </Button>
+
+          <Button
+            className="gap-2 h-11 px-6 shadow-md"
             onClick={handleExport}
             disabled={exporting}
           >
@@ -221,21 +251,21 @@ export default function Dashboard() {
           </div>
           <div className="h-[300px] w-full">
             {topProducts.length > 0 ? (
-               <ResponsiveContainer width="100%" height="100%">
-                 <BarChart data={topProducts} layout="vertical" margin={{ top: 0, right: 10, left: 10, bottom: 0 }}>
-                   <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                   <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
-                   <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 'bold' }} width={100} />
-                   <Tooltip 
-                     cursor={{ fill: '#f8fafc' }}
-                     contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}
-                     itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
-                   />
-                   <Bar dataKey="quantity" fill="#134f77" radius={[0, 4, 4, 0]} />
-                 </BarChart>
-               </ResponsiveContainer>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={topProducts} layout="vertical" margin={{ top: 0, right: 10, left: 10, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                  <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
+                  <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 'bold' }} width={100} />
+                  <Tooltip
+                    cursor={{ fill: '#f8fafc' }}
+                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}
+                    itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
+                  />
+                  <Bar dataKey="quantity" fill="#134f77" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             ) : (
-               <div className="h-full flex items-center justify-center text-sm font-bold text-on-surface-variant italic">No product data available yet.</div>
+              <div className="h-full flex items-center justify-center text-sm font-bold text-on-surface-variant italic">No product data available yet.</div>
             )}
           </div>
         </Card>
@@ -250,26 +280,26 @@ export default function Dashboard() {
           </div>
           <div className="h-[300px] relative">
             {funnelData.length > 0 ? (
-               <ResponsiveContainer width="100%" height="100%">
-                 <AreaChart data={funnelData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                   <defs>
-                     <linearGradient id="colorFunnel" x1="0" y1="0" x2="0" y2="1">
-                       <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.15}/>
-                       <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
-                     </linearGradient>
-                   </defs>
-                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                   <XAxis dataKey="eventType" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 600, fill: '#64748b' }} />
-                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 600, fill: '#64748b' }} />
-                   <Tooltip 
-                     contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', padding: '12px 16px' }}
-                     itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
-                   />
-                   <Area type="monotone" dataKey="count" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorFunnel)" />
-                 </AreaChart>
-               </ResponsiveContainer>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={funnelData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorFunnel" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="eventType" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 600, fill: '#64748b' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 600, fill: '#64748b' }} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', padding: '12px 16px' }}
+                    itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
+                  />
+                  <Area type="monotone" dataKey="count" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorFunnel)" />
+                </AreaChart>
+              </ResponsiveContainer>
             ) : (
-               <div className="h-full flex items-center justify-center text-sm font-bold text-on-surface-variant italic">No event data available yet.</div>
+              <div className="h-full flex items-center justify-center text-sm font-bold text-on-surface-variant italic">No event data available yet.</div>
             )}
           </div>
         </Card>

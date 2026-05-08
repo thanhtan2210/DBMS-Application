@@ -62,7 +62,16 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findOrdersFromHighValueCustomers();
 
     @Query("""
-            SELECT COUNT(o), SUM(o.totalAmount), SUM(o.discountAmount)
+            SELECT 
+                COUNT(o), 
+                SUM(o.subtotalAmount), 
+                SUM(o.discountAmount),
+                COUNT(DISTINCT o.customer.customerId),
+                (SELECT SUM(oi.quantity) FROM OrderItem oi WHERE oi.order.orderId IN (
+                    SELECT o2.orderId FROM Order o2 
+                    WHERE o2.createdAt BETWEEN :from AND :to 
+                    AND o2.orderStatus NOT IN (:excludedStatuses)
+                ))
             FROM Order o
             WHERE o.createdAt BETWEEN :from AND :to
               AND o.orderStatus NOT IN (:excludedStatuses)
