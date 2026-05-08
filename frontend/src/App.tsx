@@ -32,6 +32,8 @@ import { Shipping } from '@storefront/pages/main/Shipping';
 import { Login } from '@storefront/pages/main/Login';
 import { Register } from '@storefront/pages/main/Register';
 import { Checkout } from '@storefront/pages/main/Checkout';
+import { Payment } from '@storefront/pages/main/Payment';
+import { MomoReturn } from '@storefront/pages/main/MomoReturn';
 import { Profile } from '@storefront/pages/main/Profile';
 import { MyOrders } from '@storefront/pages/main/MyOrders';
 import { Privacy } from '@storefront/pages/main/Privacy';
@@ -130,6 +132,7 @@ function StorefrontLayout() {
           <Route path="categories" element={<Categories />} />
           <Route path="support" element={<Support />} />
           <Route path="shipping" element={<Shipping />} />
+          <Route path="payment/momo-return" element={<MomoReturn />} />
 
           {/* GUEST ONLY ROUTES */}
           <Route element={<GuestRoute />}>
@@ -140,6 +143,7 @@ function StorefrontLayout() {
           {/* PROTECTED CUSTOMER ROUTES */}
           <Route element={<CustomerRoute />}>
             <Route path="checkout" element={<Checkout />} />
+            <Route path="payment/:orderId" element={<Payment />} />
             <Route path="profile" element={<Profile />} />
             <Route path="orders" element={<MyOrders />} />
           </Route>

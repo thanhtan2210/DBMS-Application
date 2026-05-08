@@ -162,4 +162,10 @@ public class CustomerServiceImpl implements CustomerService {
         profile.getUser().softDelete();
         userRepository.save(profile.getUser());
     }
+
+    @Override
+    public CustomerProfile getCustomerProfile(Long id) {
+        return customerProfileRepository.findByIdWithUser(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer", id));
+    }
 }

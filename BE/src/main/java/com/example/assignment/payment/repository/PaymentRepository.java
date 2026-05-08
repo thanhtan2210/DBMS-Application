@@ -23,6 +23,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     List<Payment> findByOrder_OrderId(Long orderId);
 
+        Optional<Payment> findTopByOrder_OrderIdOrderByCreatedAtDesc(Long orderId);
+
     // FR-04: Composite — payments with status filter
     Page<Payment> findByPaymentStatus(PaymentStatus status, Pageable pageable);
 

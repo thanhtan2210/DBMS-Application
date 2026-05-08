@@ -5,6 +5,7 @@ import com.example.assignment.order.repository.OrderRepository;
 import com.example.assignment.order.service.OrderStatusService;
 import com.example.assignment.payment.dto.InitiatePaymentRequest;
 import com.example.assignment.payment.dto.PaymentCallbackRequest;
+import com.example.assignment.payment.dto.PaymentInitiationResponse;
 import com.example.assignment.payment.entity.Payment;
 import com.example.assignment.payment.repository.PaymentRepository;
 import com.example.assignment.shared.enums.OrderStatus;
@@ -30,10 +31,11 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
     private final OrderStatusService orderStatusService;
+    private final MomoPaymentGatewayService momoPaymentGatewayService;
 
     @Override
     @Transactional
-    public Payment initiatePayment(InitiatePaymentRequest request) {
+    public PaymentInitiationResponse initiatePayment(InitiatePaymentRequest request) {
         Order order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new ResourceNotFoundException("Order", request.getOrderId()));
 
@@ -41,19 +43,39 @@ public class PaymentServiceImpl implements PaymentService {
             throw new BusinessRuleViolationException("Order is not in a payable state: " + order.getOrderStatus());
         }
 
+        paymentRepository.findTopByOrder_OrderIdOrderByCreatedAtDesc(order.getOrderId())
+            .filter(existingPayment -> existingPayment.getPaymentStatus() != PaymentStatus.FAILED)
+            .ifPresent(existingPayment -> {
+                throw new BusinessRuleViolationException(
+                    "PAYMENT_EXISTS",
+                    "Order already has an active payment: " + existingPayment.getTransactionRef());
+            });
+
         String txRef = "TXN-" + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
+        PaymentMethod paymentMethod = PaymentMethod.valueOf(request.getPaymentMethod());
         Payment payment = Payment.builder()
                 .order(order)
-                .paymentMethod(PaymentMethod.valueOf(request.getPaymentMethod()))
-                .paymentProvider(request.getPaymentProvider())
+            .paymentMethod(paymentMethod)
+            .paymentProvider(request.getPaymentProvider() != null ? request.getPaymentProvider() : paymentMethod.name())
                 .transactionRef(txRef)
                 .amount(order.getTotalAmount())
                 .paymentStatus(PaymentStatus.PENDING)
                 .build();
 
-        paymentRepository.save(payment);
+        Payment savedPayment = paymentRepository.save(payment);
+        String payUrl = null;
+
+        if (paymentMethod == PaymentMethod.MOMO) {
+            payUrl = momoPaymentGatewayService.createPayUrl(savedPayment);
+        }
+
         log.info("Payment initiated: txRef={}, orderId={}", txRef, order.getOrderId());
-        return payment;
+        return PaymentInitiationResponse.builder()
+                .payment(savedPayment)
+                .payUrl(payUrl)
+                .provider(paymentMethod.name())
+                .message(paymentMethod == PaymentMethod.MOMO ? "MoMo payment created" : "Payment created")
+                .build();
     }
 
     @Override
@@ -95,6 +117,13 @@ public class PaymentServiceImpl implements PaymentService {
     public Payment getPaymentById(Long paymentId) {
         return paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Payment", paymentId));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Payment getLatestPaymentByOrderId(Long orderId) {
+        return paymentRepository.findTopByOrder_OrderIdOrderByCreatedAtDesc(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Payment", "orderId", orderId.toString()));
     }
 
     @Override

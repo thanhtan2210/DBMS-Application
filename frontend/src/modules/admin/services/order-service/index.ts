@@ -17,8 +17,12 @@ export const createOrder = async (payload: {
   selectedCartItemIds: number[];
   paymentMethod: string;
   promotionCodes?: string[];
-}) => {
+}): Promise<any> => {
   return await axiosClient.post('/orders', payload);
+};
+
+export const getOrderById = async (id: number): Promise<any> => {
+  return await axiosClient.get(`/orders/${id}`);
 };
 
 // Update order status (Admin)
@@ -26,11 +30,16 @@ export const updateOrderStatus = async (id: number, newStatus: string, note?: st
   const query = new URLSearchParams();
   query.append('newStatus', newStatus);
   if (note) query.append('note', note);
-  
+
   return await axiosClient.patch(`/admin/orders/${id}/status?${query.toString()}`);
 };
 
 // Backward compatibility or other logics
 export const processCheckout = (cartId: string) => {
   return { success: true, orderId: 'ORD-' + Date.now() };
+};
+
+// Cancel an order by customer
+export const cancelCustomerOrder = async (id: number) => {
+  return await axiosClient.patch(`/orders/${id}/cancel`);
 };

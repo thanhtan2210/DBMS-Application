@@ -46,7 +46,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       // Bóc tách dữ liệu linh hoạt (array thẳng hoặc bọc trong data)
       const data = response?.data || response;
       const cartItems = Array.isArray(data) ? data : [];
-      setCart(cartItems);
+      const sortedCartItems = [...cartItems].sort((a, b) => a.cartItemId - b.cartItemId);
+      setCart(sortedCartItems);
     } catch (e: any) {
       setCart([]);
     }

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Package, ArrowLeft, Clock, CheckCircle, XCircle } from "lucide-react";
 import axiosClient from "@/api/axiosClient";
+import { cancelCustomerOrder } from "@/modules/admin/services/order-service";
 
 interface OrderItem {
   id: number;
@@ -14,9 +15,10 @@ interface OrderItem {
 }
 
 interface OrderDTO {
-  id: string;
+  orderId: number;
   orderCode: string;
-  status: string;
+  orderStatus: string;
+  paymentStatus: string;
   totalAmount: number;
   createdAt: string;
   items: OrderItem[];
@@ -27,19 +29,11 @@ export function MyOrders() {
   const [orders, setOrders] = useState<OrderDTO[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const customerIdMap: Record<string, number> = {
-    'alice@email.com': 2,
-    'bob@email.com': 3,
-    'carol@email.com': 4
-  };
-  const customerId = user ? (customerIdMap[user.email] || 2) : 2;
-
   useEffect(() => {
     const fetchOrders = async () => {
       try {
         setLoading(true);
-        // Using existing endpoint in OrderController: /api/customers/{customerId}/orders
-        const res: any = await axiosClient.get(`/customers/${customerId}/orders`);
+        const res: any = await axiosClient.get(`/orders/my-orders`);
         setOrders(res.data || res.content || res || []);
       } catch (err) {
         console.error("Failed to fetch orders:", err);
@@ -48,21 +42,33 @@ export function MyOrders() {
       }
     };
     if (user) fetchOrders();
-  }, [user, customerId]);
+  }, [user]);
+
+  const handleCancelOrder = async (orderId: number) => {
+    if (window.confirm("Bạn có chắc chắn muốn hủy đơn hàng này không?")) {
+      try {
+        await cancelCustomerOrder(orderId);
+        const res: any = await axiosClient.get(`/orders/my-orders`);
+        setOrders(res.data || res.content || res || []);
+      } catch (err: any) {
+        alert(err?.response?.data?.message || 'Không thể hủy đơn hàng.');
+      }
+    }
+  };
 
   if (!user) {
     return (
       <div className="container-custom py-40 flex flex-col items-center text-center">
         <h1 className="text-4xl font-bold mb-6">Identity Required</h1>
         <Link to="/login" className="bg-postpurchase-accent text-white px-10 py-5 rounded-full font-bold uppercase tracking-widest text-xs">
-           Sign In
+          Sign In
         </Link>
       </div>
     );
   }
 
   const getStatusIcon = (status: string) => {
-    switch(status) {
+    switch (status) {
       case 'DELIVERED': return <CheckCircle className="w-5 h-5 text-emerald-500" />;
       case 'CANCELLED': return <XCircle className="w-5 h-5 text-red-500" />;
       default: return <Clock className="w-5 h-5 text-amber-500" />;
@@ -70,11 +76,37 @@ export function MyOrders() {
   };
 
   const getStatusColor = (status: string) => {
-    switch(status) {
+    switch (status) {
       case 'DELIVERED': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'CANCELLED': return 'bg-red-50 text-red-700 border-red-200';
       default: return 'bg-amber-50 text-amber-700 border-amber-200';
     }
+  };
+
+  const getFriendlyOrderStatus = (status: string) => {
+    const map: Record<string, string> = {
+      'PENDING_PAYMENT': 'Pending Payment',
+      'PAYMENT_FAILED': 'Payment Failed',
+      'PAID': 'Paid',
+      'CONFIRMED': 'Confirmed',
+      'PROCESSING': 'Processing',
+      'PACKED': 'Packed',
+      'SHIPPED': 'Shipped',
+      'DELIVERED': 'Delivered',
+      'RETURNED': 'Returned',
+      'CANCELLED': 'Cancelled'
+    };
+    return map[status] || status;
+  };
+
+  const getFriendlyPaymentStatus = (status: string) => {
+    const map: Record<string, string> = {
+      'PENDING': 'Pending',
+      'SUCCESS': 'Success',
+      'FAILED': 'Failed',
+      'REFUNDED': 'Refunded'
+    };
+    return map[status] || status;
   };
 
   return (
@@ -105,7 +137,7 @@ export function MyOrders() {
         ) : (
           <div className="space-y-6">
             {orders.map(order => (
-              <div key={order.id} className="bg-white rounded-3xl p-8 border border-postpurchase-border shadow-sm hover:shadow-md transition-all">
+              <div key={order.orderId} className="bg-white rounded-3xl p-8 border border-postpurchase-border shadow-sm hover:shadow-md transition-all">
                 <div className="flex flex-wrap justify-between items-start gap-4 mb-6 pb-6 border-b border-postpurchase-border">
                   <div>
                     <span className="text-[10px] font-bold uppercase tracking-widest text-postpurchase-muted mb-1 block">Order Code</span>
@@ -119,9 +151,22 @@ export function MyOrders() {
                     <span className="text-[10px] font-bold uppercase tracking-widest text-postpurchase-muted mb-1 block">Total Amount</span>
                     <p className="text-xl font-bold text-postpurchase-accent">${order.totalAmount.toLocaleString()}</p>
                   </div>
-                  <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${getStatusColor(order.status)}`}>
-                    {getStatusIcon(order.status)}
-                    <span className="text-xs font-bold uppercase tracking-widest">{order.status}</span>
+                  <div className="flex flex-col gap-2 items-end">
+                    <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${getStatusColor(order.orderStatus)}`}>
+                      {getStatusIcon(order.orderStatus)}
+                      <span className="text-xs font-bold uppercase tracking-widest">Status: {getFriendlyOrderStatus(order.orderStatus)}</span>
+                    </div>
+                    <div className="flex items-center gap-2 px-4 py-1 rounded-lg border bg-slate-50 text-slate-700 border-slate-200">
+                      <span className="text-[10px] font-bold uppercase tracking-widest">Payment: {getFriendlyPaymentStatus(order.paymentStatus)}</span>
+                    </div>
+                    {order.orderStatus === 'PENDING_PAYMENT' && (
+                      <button
+                        onClick={() => handleCancelOrder(order.orderId)}
+                        className="text-xs font-bold text-red-500 hover:text-red-700 underline mt-1"
+                      >
+                        Cancel Order
+                      </button>
+                    )}
                   </div>
                 </div>
 

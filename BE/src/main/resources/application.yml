@@ -43,3 +43,13 @@ app:
     # 256-bit Base64-encoded secret
     secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
     expiration-ms: 86400000 # 24 hours
+  payment:
+    momo:
+      partner-code: ${MOMO_PARTNER_CODE:}
+      access-key: ${MOMO_ACCESS_KEY:}
+      secret-key: ${MOMO_SECRET_KEY:}
+      endpoint: ${MOMO_ENDPOINT:https://test-payment.momo.vn/v2/gateway/api/create}
+      return-url: ${MOMO_RETURN_URL:http://localhost:5173/payment/momo-return}
+      ipn-url: ${MOMO_IPN_URL:http://localhost:8080/api/payments/momo/ipn}
+      request-type: ${MOMO_REQUEST_TYPE:captureWallet}
+      lang: ${MOMO_LANG:vi}

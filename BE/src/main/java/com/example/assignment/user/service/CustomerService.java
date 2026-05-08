@@ -4,6 +4,7 @@ import com.example.assignment.shared.dto.PageResponse;
 import com.example.assignment.user.dto.CreateCustomerRequest;
 import com.example.assignment.user.dto.CustomerResponse;
 import com.example.assignment.user.dto.UpdateCustomerRequest;
+import com.example.assignment.user.entity.CustomerProfile;
 import org.springframework.data.domain.Pageable;
 
 /**
@@ -25,4 +26,6 @@ public interface CustomerService {
     void deactivateCustomer(Long customerId);
 
     void deleteCustomer(Long customerId);
+
+    CustomerProfile getCustomerProfile(Long id);
 }
