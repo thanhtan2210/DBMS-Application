@@ -10,15 +10,22 @@ import java.math.BigDecimal;
 
 public interface ProductService {
     ProductResponse createProduct(CreateProductRequest request);
+
     ProductResponse getProductById(Long productId);
+
     ProductResponse getProductBySku(String sku);
-    PageResponse<ProductResponse> listProducts(Long categoryId, Long brandId, String status, BigDecimal minPrice, BigDecimal maxPrice, String keyword, Pageable pageable);
+
+    PageResponse<ProductResponse> listProducts(Long categoryId, Long brandId, String status, BigDecimal minPrice,
+            BigDecimal maxPrice, String keyword, Pageable pageable);
 
     // Customer search — uses Semantic Search with fallback to ILIKE
-    PageResponse<ProductResponse> searchStoreProducts(String keyword, Long categoryId, Long brandId, Pageable pageable);
+    PageResponse<ProductResponse> searchStoreProducts(String keyword, Long categoryId, Long brandId,
+            BigDecimal minPrice, BigDecimal maxPrice, Pageable pageable);
 
     ProductResponse updateProduct(Long productId, CreateProductRequest request);
+
     void deactivateProduct(Long productId);
+
     void deleteProduct(Long productId);
 
     // ── Embedding generation ────────────────────────────────────────────────────

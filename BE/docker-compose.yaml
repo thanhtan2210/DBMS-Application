@@ -28,7 +28,7 @@ services:
     volumes:
       - db_data:/var/lib/postgresql
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       POSTGRES_DB: main_db
       POSTGRES_USER: admin

@@ -164,13 +164,13 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public PageResponse<ProductResponse> searchStoreProducts(String keyword, Long categoryId, Long brandId,
-            Pageable pageable) {
-        if (keyword != null && !keyword.isBlank()) {
+            BigDecimal minPrice, BigDecimal maxPrice, Pageable pageable) {
+        if (keyword != null && !keyword.isBlank() && pageable.getSort().isUnsorted()) {
             try {
                 String vectorStr = generateEmbedding(keyword);
                 if (vectorStr != null) {
                     org.springframework.data.domain.Page<Product> semanticResults = productRepository
-                            .searchStoreProductsSemantic(vectorStr, categoryId, brandId, pageable);
+                            .searchStoreProductsSemantic(vectorStr, categoryId, brandId, minPrice, maxPrice, pageable);
 
                     // Nếu tìm kiếm theo Vector có kết quả, trả về ngay
                     if (semanticResults.hasContent()) {
@@ -182,10 +182,10 @@ public class ProductServiceImpl implements ProductService {
             }
         }
 
-        // Fallback: Tìm kiếm theo kiểu truyền thống (LIKE) nếu Vector search không ra
-        // hoặc không có keyword
+        // Fallback: Tìm kiếm theo kiểu truyền thống (LIKE) nếu Vector search không ra,
+        // không có keyword, hoặc có Sorting rõ ràng
         return PageResponse.from(
-                productRepository.searchStoreProductsIlike(keyword, categoryId, brandId, pageable)
+                productRepository.searchStoreProductsIlike(keyword, categoryId, brandId, minPrice, maxPrice, pageable)
                         .map(ProductResponse::from));
     }
 

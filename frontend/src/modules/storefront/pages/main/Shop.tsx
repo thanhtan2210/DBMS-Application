@@ -12,6 +12,11 @@ export default function Shop() {
   const query = searchParams.get("q") || "";
   const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
   const [activeBrandId, setActiveBrandId] = useState<number | null>(null);
+  const [minPriceInput, setMinPriceInput] = useState<string>("");
+  const [maxPriceInput, setMaxPriceInput] = useState<string>("");
+  const [appliedMinPrice, setAppliedMinPrice] = useState<number | undefined>(undefined);
+  const [appliedMaxPrice, setAppliedMaxPrice] = useState<number | undefined>(undefined);
+  const [sortBy, setSortBy] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -27,7 +32,7 @@ export default function Shop() {
 
   useEffect(() => {
     setCurrentPage(0);
-  }, [query, activeCategoryId, activeBrandId]);
+  }, [query, activeCategoryId, activeBrandId, appliedMinPrice, appliedMaxPrice, sortBy]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -37,6 +42,9 @@ export default function Shop() {
         const params: any = { keyword: query, page: currentPage, size: 12 };
         if (activeCategoryId) params.categoryId = activeCategoryId;
         if (activeBrandId) params.brandId = activeBrandId;
+        if (appliedMinPrice !== undefined) params.minPrice = appliedMinPrice;
+        if (appliedMaxPrice !== undefined) params.maxPrice = appliedMaxPrice;
+        if (sortBy) params.sort = sortBy;
 
         const response: any = await getActiveProducts(params);
         setProducts(response.content || []);
@@ -50,7 +58,7 @@ export default function Shop() {
     };
 
     fetchProducts();
-  }, [query, activeCategoryId, activeBrandId, currentPage]);
+  }, [query, activeCategoryId, activeBrandId, currentPage, appliedMinPrice, appliedMaxPrice, sortBy]);
 
   return (
     <div className="container-custom py-20">
@@ -62,6 +70,26 @@ export default function Shop() {
           <p className="text-postpurchase-muted text-sm italic">
             {query ? `Found ${products.length} items matching your search.` : "Precision design for modern living."}
           </p>
+        </div>
+
+        <div className="w-full md:w-auto">
+          <select 
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="w-full md:w-auto px-4 py-3 bg-postpurchase-card border border-postpurchase-border rounded-xl text-sm font-bold text-postpurchase-muted hover:text-postpurchase-text focus:outline-none focus:ring-2 focus:ring-postpurchase-accent transition-all appearance-none cursor-pointer pr-10 relative shadow-sm"
+            style={{ 
+              backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right 1rem center',
+              backgroundSize: '1em'
+            }}
+          >
+            <option value="">Sort by Relevance</option>
+            <option value="price,asc">Price: Low to High</option>
+            <option value="price,desc">Price: High to Low</option>
+            <option value="productName,asc">Name: A to Z</option>
+            <option value="productName,desc">Name: Z to A</option>
+          </select>
         </div>
       </div>
 
@@ -103,6 +131,57 @@ export default function Shop() {
             </button>
           ))}
         </div>
+
+        <div className="flex items-center gap-4 overflow-x-auto pb-2 w-full">
+          <span className="text-xs font-bold uppercase tracking-widest text-postpurchase-muted min-w-[80px]">Price:</span>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-postpurchase-muted font-bold text-xs">$</span>
+              <input
+                type="number"
+                min="0"
+                placeholder="Min"
+                value={minPriceInput}
+                onChange={(e) => setMinPriceInput(e.target.value)}
+                className="w-24 pl-6 pr-3 py-2 bg-postpurchase-card border border-postpurchase-border rounded-full text-xs font-bold focus:outline-none focus:ring-2 focus:ring-postpurchase-accent transition-all"
+              />
+            </div>
+            <span className="text-postpurchase-muted font-bold">-</span>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-postpurchase-muted font-bold text-xs">$</span>
+              <input
+                type="number"
+                min="0"
+                placeholder="Max"
+                value={maxPriceInput}
+                onChange={(e) => setMaxPriceInput(e.target.value)}
+                className="w-24 pl-6 pr-3 py-2 bg-postpurchase-card border border-postpurchase-border rounded-full text-xs font-bold focus:outline-none focus:ring-2 focus:ring-postpurchase-accent transition-all"
+              />
+            </div>
+            <button
+              onClick={() => {
+                setAppliedMinPrice(minPriceInput ? Number(minPriceInput) : undefined);
+                setAppliedMaxPrice(maxPriceInput ? Number(maxPriceInput) : undefined);
+              }}
+              className={`px-5 py-2 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all whitespace-nowrap ${minPriceInput || maxPriceInput ? 'bg-postpurchase-text text-postpurchase-background hover:bg-postpurchase-accent hover:text-white shadow-md' : 'bg-postpurchase-card text-postpurchase-muted border border-postpurchase-border'}`}
+            >
+              Apply
+            </button>
+            {(appliedMinPrice !== undefined || appliedMaxPrice !== undefined) && (
+              <button
+                onClick={() => {
+                  setMinPriceInput("");
+                  setMaxPriceInput("");
+                  setAppliedMinPrice(undefined);
+                  setAppliedMaxPrice(undefined);
+                }}
+                className="px-5 py-2 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all whitespace-nowrap bg-red-50 text-red-500 hover:bg-red-500 hover:text-white shadow-sm hover:shadow-md border border-red-100"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       {error ? (
@@ -119,6 +198,11 @@ export default function Shop() {
             onClick={() => {
               setActiveCategoryId(null);
               setActiveBrandId(null);
+              setMinPriceInput("");
+              setMaxPriceInput("");
+              setAppliedMinPrice(undefined);
+              setAppliedMaxPrice(undefined);
+              setSortBy("");
               if (query) window.location.href = '/shop';
             }}
             className="mt-8 px-8 py-4 bg-postpurchase-accent text-white rounded-full font-bold uppercase tracking-widest text-[10px]"

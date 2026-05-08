@@ -24,7 +24,7 @@ interface BackendProductDTO {
   variants: VariantDTO[];
 }
 
-export const getActiveProducts = async (params?: { keyword?: string, categoryId?: number, brandId?: number, page?: number, size?: number }) => {
+export const getActiveProducts = async (params?: { keyword?: string, categoryId?: number, brandId?: number, minPrice?: number, maxPrice?: number, sort?: string, page?: number, size?: number }) => {
   try {
     const response: any = await axiosClient.get('/store/products/search', { params });
     // Dữ liệu có thể bị bọc bởi interceptor hoặc trả về thẳng content

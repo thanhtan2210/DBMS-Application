@@ -192,7 +192,7 @@
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-maven-plugin</artifactId>
                 <configuration>
-                <url>jdbc:postgresql://localhost:5432/main_db</url>
+                <url>jdbc:postgresql://localhost:5433/main_db</url>
                 <user>admin</user>
                 <password>admin</password>
             </configuration>

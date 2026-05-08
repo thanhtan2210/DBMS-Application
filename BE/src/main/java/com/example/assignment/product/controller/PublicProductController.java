@@ -14,6 +14,8 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+
 /**
  * Public Product API for Storefront (Customers).
  */
@@ -25,20 +27,21 @@ public class PublicProductController {
 
     private final ProductService productService;
 
-    @Operation(summary = "Search products",
-               description = "Returns a paginated list of active products based on search keyword (Semantic Search + ILIKE Fallback), category, and brand.")
+    @Operation(summary = "Search products", description = "Returns a paginated list of active products based on search keyword (Semantic Search + ILIKE Fallback), category, and brand.")
     @ApiResponses({
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Paginated product list returned")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Paginated product list returned")
     })
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<PageResponse<ProductResponse>>> search(
             @Parameter(description = "Search keyword for product name or description") @RequestParam(required = false) String keyword,
             @Parameter(description = "Filter by category ID") @RequestParam(required = false) Long categoryId,
             @Parameter(description = "Filter by brand ID") @RequestParam(required = false) Long brandId,
+            @Parameter(description = "Min price") @RequestParam(required = false) BigDecimal minPrice,
+            @Parameter(description = "Max price") @RequestParam(required = false) BigDecimal maxPrice,
             @PageableDefault(size = 20) Pageable pageable) {
-        
+
         return ResponseEntity.ok(ApiResponse.success(
-                productService.searchStoreProducts(keyword, categoryId, brandId, pageable)));
+                productService.searchStoreProducts(keyword, categoryId, brandId, minPrice, maxPrice, pageable)));
     }
 
     @Operation(summary = "Get product details", description = "Returns details of a specific product by ID.")
