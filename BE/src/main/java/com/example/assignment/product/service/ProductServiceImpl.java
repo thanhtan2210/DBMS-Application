@@ -42,13 +42,15 @@ public class ProductServiceImpl implements ProductService {
     // ── Private helpers ─────────────────────────────────────────────────────────
 
     private String generateEmbedding(String text) {
-        if (text == null || text.isBlank()) return null;
+        if (text == null || text.isBlank())
+            return null;
         try {
             float[] vector = embeddingModel.embed(text).content().vector();
             StringBuilder sb = new StringBuilder("[");
             for (int i = 0; i < vector.length; i++) {
                 sb.append(vector[i]);
-                if (i < vector.length - 1) sb.append(",");
+                if (i < vector.length - 1)
+                    sb.append(",");
             }
             sb.append("]");
             return sb.toString();
@@ -64,11 +66,14 @@ public class ProductServiceImpl implements ProductService {
         return (name + " " + desc).trim();
     }
 
-    /** Sinh embedding cho một product và persist ngay. Trả về true nếu thành công. */
+    /**
+     * Sinh embedding cho một product và persist ngay. Trả về true nếu thành công.
+     */
     private boolean embedAndSave(Product product) {
         try {
             String embeddingStr = generateEmbedding(buildEmbeddingText(product));
-            if (embeddingStr == null) return false;
+            if (embeddingStr == null)
+                return false;
             productRepository.updateProductEmbedding(product.getProductId(), embeddingStr);
             return true;
         } catch (Exception e) {
@@ -88,12 +93,12 @@ public class ProductServiceImpl implements ProductService {
 
         Brand brand = request.getBrandId() != null
                 ? brandRepository.findById(request.getBrandId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Brand", request.getBrandId()))
+                        .orElseThrow(() -> new ResourceNotFoundException("Brand", request.getBrandId()))
                 : null;
 
         Category category = request.getCategoryId() != null
                 ? categoryRepository.findById(request.getCategoryId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Category", request.getCategoryId()))
+                        .orElseThrow(() -> new ResourceNotFoundException("Category", request.getCategoryId()))
                 : null;
 
         Product product = Product.builder()
@@ -104,6 +109,7 @@ public class ProductServiceImpl implements ProductService {
                 .description(request.getDescription())
                 .price(request.getPrice())
                 .costPrice(request.getCostPrice())
+                .imageUrl(request.getImageUrl())
                 .status("ACTIVE")
                 .build();
 
@@ -117,6 +123,7 @@ public class ProductServiceImpl implements ProductService {
                     .size(v.getSize())
                     .priceOverride(v.getPriceOverride())
                     .barcode(v.getBarcode())
+                    .imageUrl(v.getImageUrl())
                     .status("ACTIVE")
                     .build()).collect(Collectors.toList());
             variantRepository.saveAll(variants);
@@ -148,7 +155,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public PageResponse<ProductResponse> listProducts(Long categoryId, Long brandId, String status,
-                                                       BigDecimal minPrice, BigDecimal maxPrice, String keyword, Pageable pageable) {
+            BigDecimal minPrice, BigDecimal maxPrice, String keyword, Pageable pageable) {
         return PageResponse.from(
                 productRepository.findByFilters(categoryId, brandId, status, minPrice, maxPrice, keyword, pageable)
                         .map(ProductResponse::from));
@@ -156,14 +163,15 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public PageResponse<ProductResponse> searchStoreProducts(String keyword, Long categoryId, Long brandId, Pageable pageable) {
+    public PageResponse<ProductResponse> searchStoreProducts(String keyword, Long categoryId, Long brandId,
+            Pageable pageable) {
         if (keyword != null && !keyword.isBlank()) {
             try {
                 String vectorStr = generateEmbedding(keyword);
                 if (vectorStr != null) {
-                    org.springframework.data.domain.Page<Product> semanticResults = 
-                            productRepository.searchStoreProductsSemantic(vectorStr, categoryId, brandId, pageable);
-                    
+                    org.springframework.data.domain.Page<Product> semanticResults = productRepository
+                            .searchStoreProductsSemantic(vectorStr, categoryId, brandId, pageable);
+
                     // Nếu tìm kiếm theo Vector có kết quả, trả về ngay
                     if (semanticResults.hasContent()) {
                         return PageResponse.from(semanticResults.map(ProductResponse::from));
@@ -174,11 +182,11 @@ public class ProductServiceImpl implements ProductService {
             }
         }
 
-        // Fallback: Tìm kiếm theo kiểu truyền thống (LIKE) nếu Vector search không ra hoặc không có keyword
+        // Fallback: Tìm kiếm theo kiểu truyền thống (LIKE) nếu Vector search không ra
+        // hoặc không có keyword
         return PageResponse.from(
                 productRepository.searchStoreProductsIlike(keyword, categoryId, brandId, pageable)
-                        .map(ProductResponse::from)
-        );
+                        .map(ProductResponse::from));
     }
 
     @Override
@@ -187,10 +195,16 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", productId));
 
-        if (request.getProductName() != null) product.setProductName(request.getProductName());
-        if (request.getPrice() != null) product.setPrice(request.getPrice());
-        if (request.getCostPrice() != null) product.setCostPrice(request.getCostPrice());
-        if (request.getDescription() != null) product.setDescription(request.getDescription());
+        if (request.getProductName() != null)
+            product.setProductName(request.getProductName());
+        if (request.getPrice() != null)
+            product.setPrice(request.getPrice());
+        if (request.getCostPrice() != null)
+            product.setCostPrice(request.getCostPrice());
+        if (request.getDescription() != null)
+            product.setDescription(request.getDescription());
+        if (request.getImageUrl() != null)
+            product.setImageUrl(request.getImageUrl());
 
         if (request.getBrandId() != null) {
             product.setBrand(brandRepository.findById(request.getBrandId())

@@ -38,6 +38,9 @@ public class CreateProductRequest {
     @DecimalMin("0.00")
     private BigDecimal costPrice;
 
+    @Schema(description = "Image URL of the product", example = "https://example.com/image.png")
+    private String imageUrl;
+
     private java.util.List<VariantRequest> variants;
 
     @Data
@@ -49,6 +52,7 @@ public class CreateProductRequest {
         private BigDecimal priceOverride;
         @NotBlank
         private String barcode;
+        private String imageUrl;
     }
 }
 

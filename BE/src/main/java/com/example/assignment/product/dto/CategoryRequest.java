@@ -7,4 +7,5 @@ public class CategoryRequest {
     private String name;
     private String description;
     private Long parentCategoryId;
+    private String imageUrl;
 }

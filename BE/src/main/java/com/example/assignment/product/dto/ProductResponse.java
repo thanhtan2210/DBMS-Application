@@ -22,6 +22,7 @@ public class ProductResponse {
     private BigDecimal costPrice;
     private String status;
     private LocalDateTime createdAt;
+    private String imageUrl;
     private List<VariantResponse> variants;
 
     @Data
@@ -32,6 +33,7 @@ public class ProductResponse {
         private String color;
         private String size;
         private BigDecimal priceOverride;
+        private String imageUrl;
     }
 
     public static ProductResponse from(Product product) {
@@ -46,6 +48,7 @@ public class ProductResponse {
                 .costPrice(product.getCostPrice())
                 .status(product.getStatus())
                 .createdAt(product.getCreatedAt())
+                .imageUrl(product.getImageUrl())
                 .variants(product.getVariants() != null ? 
                     product.getVariants().stream().map(v -> VariantResponse.builder()
                             .variantId(v.getVariantId())
@@ -53,6 +56,7 @@ public class ProductResponse {
                             .color(v.getColor())
                             .size(v.getSize())
                             .priceOverride(v.getPriceOverride())
+                            .imageUrl(v.getImageUrl())
                             .build()).toList() : null)
                 .build();
     }

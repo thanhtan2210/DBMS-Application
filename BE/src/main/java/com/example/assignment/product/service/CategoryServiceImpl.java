@@ -32,6 +32,7 @@ public class CategoryServiceImpl implements CategoryService {
                 .categoryName(request.getName())
                 .description(request.getDescription())
                 .parentCategory(parent)
+                .imageUrl(request.getImageUrl())
                 .status("ACTIVE")
                 .build();
         return categoryRepository.save(category);
@@ -44,6 +45,7 @@ public class CategoryServiceImpl implements CategoryService {
                 .orElseThrow(() -> new RuntimeException("Category not found"));
         category.setCategoryName(request.getName());
         category.setDescription(request.getDescription());
+        category.setImageUrl(request.getImageUrl());
         if (request.getParentCategoryId() != null) {
             Category parent = categoryRepository.findById(request.getParentCategoryId())
                     .orElseThrow(() -> new RuntimeException("Parent category not found"));

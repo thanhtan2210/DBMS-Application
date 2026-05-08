@@ -27,11 +27,11 @@ export function Categories() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
         {categories.map((cat, index) => (
           <Link to="/shop" key={cat.id} className="group relative aspect-[16/9] rounded-[3rem] overflow-hidden shadow-lg">
-            <img 
-                src={DEFAULT_IMAGES[index % DEFAULT_IMAGES.length]} 
-                alt={cat.name} 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" 
-                referrerPolicy="no-referrer" 
+            <img
+              src={cat.imageUrl || DEFAULT_IMAGES[index % DEFAULT_IMAGES.length]}
+              alt={cat.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
+              referrerPolicy="no-referrer"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-12 flex flex-col justify-end">
               <h3 className="text-white text-4xl font-bold mb-2 tracking-tight">{cat.name}</h3>

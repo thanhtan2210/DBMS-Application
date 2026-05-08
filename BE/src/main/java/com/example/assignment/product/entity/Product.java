@@ -54,6 +54,9 @@ public class Product extends BaseAuditEntity {
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
     private List<ProductVariant> variants;
 
+    @Column(name = "image_url", length = 1000)
+    private String imageUrl;
+
     /**
      * Vector embedding cho semantic search.
      * Được lưu dưới dạng text "[x1,x2,...]" và cast sang kiểu vector của pgvector

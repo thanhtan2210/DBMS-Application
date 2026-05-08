@@ -70,7 +70,7 @@ export function ProductDetail() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
         <div className="space-y-8">
           <div className="aspect-square bg-postpurchase-card rounded-[3rem] overflow-hidden shadow-2xl relative">
-            <img src={product.image} alt={product.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            <img src={variants.find((v: any) => v.variantId === selectedVariantId)?.imageUrl || product.image} alt={product.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
           </div>
         </div>
 

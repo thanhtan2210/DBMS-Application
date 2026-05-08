@@ -4,6 +4,7 @@ export interface CategoryDTO {
   categoryId: number;
   categoryName: string;
   description: string;
+  imageUrl?: string;
 }
 
 export const getCategories = async (): Promise<any[]> => {

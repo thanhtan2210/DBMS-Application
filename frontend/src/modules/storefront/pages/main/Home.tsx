@@ -31,14 +31,14 @@ export function Home() {
       {/* Hero Section */}
       <section className="relative h-[90vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0 scale-105">
-          <img 
-            src="https://picsum.photos/seed/postpurchase-hero/1920/1080" 
-            alt="Hero" 
+          <img
+            src="https://picsum.photos/seed/postpurchase-hero/1920/1080"
+            alt="Hero"
             className="w-full h-full object-cover blur-sm opacity-60"
             referrerPolicy="no-referrer"
           />
         </div>
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
@@ -64,7 +64,7 @@ export function Home() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2 relative aspect-[16/10] rounded-[2rem] overflow-hidden group">
-            <img src={`https://source.unsplash.com/random/800x600?${categories[0]?.name || 'Living'}`} alt={categories[0]?.name || 'Living'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" referrerPolicy="no-referrer" />
+            <img src={categories[0]?.imageUrl || `https://source.unsplash.com/random/800x600?${categories[0]?.name || 'Living'}`} alt={categories[0]?.name || 'Living'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" referrerPolicy="no-referrer" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-12">
               <h3 className="text-white text-4xl font-bold mb-2">{categories[0]?.name || 'Living'}</h3>
               <p className="text-white/70 text-sm">{categories[0]?.description || 'Elevated foundational pieces.'}</p>
@@ -72,13 +72,13 @@ export function Home() {
           </div>
           <div className="space-y-8">
             <div className="relative aspect-square rounded-[2rem] overflow-hidden group">
-              <img src={`https://source.unsplash.com/random/400x400?${categories[1]?.name || 'Bedroom'}`} alt={categories[1]?.name || 'Bedroom'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" referrerPolicy="no-referrer" />
+              <img src={categories[1]?.imageUrl || `https://source.unsplash.com/random/400x400?${categories[1]?.name || 'Bedroom'}`} alt={categories[1]?.name || 'Bedroom'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" referrerPolicy="no-referrer" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-10">
                 <h3 className="text-white text-2xl font-bold">{categories[1]?.name || 'Bedroom'}</h3>
               </div>
             </div>
             <div className="relative aspect-square rounded-[2rem] overflow-hidden group">
-              <img src={`https://source.unsplash.com/random/400x400?${categories[2]?.name || 'Workspace'}`} alt={categories[2]?.name || 'Workspace'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" referrerPolicy="no-referrer" />
+              <img src={categories[2]?.imageUrl || `https://source.unsplash.com/random/400x400?${categories[2]?.name || 'Workspace'}`} alt={categories[2]?.name || 'Workspace'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000" referrerPolicy="no-referrer" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-10">
                 <h3 className="text-white text-2xl font-bold">{categories[2]?.name || 'Workspace'}</h3>
               </div>
@@ -110,18 +110,18 @@ export function Home() {
           </div>
         </div>
       </section>
-      
+
       {/* Ethos Section */}
       <section className="py-32 container-custom grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
         <div className="aspect-[4/5] bg-postpurchase-card rounded-[3rem] overflow-hidden relative shadow-2xl">
-          <img 
-            src="https://picsum.photos/seed/ethos/1000/1200" 
-            alt="Ethos" 
+          <img
+            src="https://picsum.photos/seed/ethos/1000/1200"
+            alt="Ethos"
             className="w-full h-full object-cover opacity-80"
             referrerPolicy="no-referrer"
           />
           <div className="absolute bottom-10 left-10 glass-morphism p-6 rounded-xl">
-             <span className="text-[10px] font-bold tracking-widest uppercase">Uncompromising Quality</span>
+            <span className="text-[10px] font-bold tracking-widest uppercase">Uncompromising Quality</span>
           </div>
         </div>
         <div>

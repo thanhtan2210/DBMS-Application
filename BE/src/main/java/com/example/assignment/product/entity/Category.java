@@ -27,6 +27,9 @@ public class Category {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "image_url", length = 1000)
+    private String imageUrl;
+
     @Column(name = "status", nullable = false, length = 20)
     @Builder.Default
     private String status = "ACTIVE";

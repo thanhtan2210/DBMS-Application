@@ -30,6 +30,7 @@ public class PublicCategoryController {
         private Long id;
         private String name;
         private String description;
+        private String imageUrl;
     }
 
     @Operation(summary = "List active categories")
@@ -40,6 +41,7 @@ public class PublicCategoryController {
                         .id(c.getCategoryId())
                         .name(c.getCategoryName())
                         .description(c.getDescription())
+                        .imageUrl(c.getImageUrl())
                         .build())
                 .collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponse.success(list));
