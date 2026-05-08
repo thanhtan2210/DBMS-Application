@@ -30,6 +30,7 @@ import { Categories } from '@storefront/pages/main/Categories';
 import { Support } from '@storefront/pages/main/Support';
 import { Shipping } from '@storefront/pages/main/Shipping';
 import { Login } from '@storefront/pages/main/Login';
+import { Register } from '@storefront/pages/main/Register';
 import { Checkout } from '@storefront/pages/main/Checkout';
 import { Profile } from '@storefront/pages/main/Profile';
 import { MyOrders } from '@storefront/pages/main/MyOrders';
@@ -133,6 +134,7 @@ function StorefrontLayout() {
           {/* GUEST ONLY ROUTES */}
           <Route element={<GuestRoute />}>
             <Route path="login" element={<Login />} />
+            <Route path="register" element={<Register />} />
           </Route>
 
           {/* PROTECTED CUSTOMER ROUTES */}

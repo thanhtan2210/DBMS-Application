@@ -51,11 +51,11 @@ export function Terms() {
         </h2>
         <p>
           The Service and its original content, features, and functionality are
-          and will remain the exclusive property of Stellar Commerce and its
+          and will remain the exclusive property of Post Purchase Ecommerce and its
           licensors. The Service is protected by copyright, trademark, and other
           laws of both the United States and foreign countries. Our trademarks
           and trade dress may not be used in connection with any product or
-          service without the prior written consent of Stellar Commerce.
+          service without the prior written consent of Post Purchase Ecommerce.
         </p>
       </section>
 

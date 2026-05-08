@@ -69,29 +69,29 @@ export function ProductDetail() {
     <div className="container-custom py-20">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
         <div className="space-y-8">
-          <div className="aspect-square bg-stellar-card rounded-[3rem] overflow-hidden shadow-2xl relative">
+          <div className="aspect-square bg-postpurchase-card rounded-[3rem] overflow-hidden shadow-2xl relative">
             <img src={product.image} alt={product.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
           </div>
         </div>
 
         <div>
           <h1 className="text-5xl font-bold mb-6 tracking-tight leading-tight">{product.name}</h1>
-          <p className="text-3xl font-light text-stellar-accent mb-10">${product.basePrice}</p>
+          <p className="text-3xl font-light text-postpurchase-accent mb-10">${product.basePrice}</p>
           
-          <p className="text-stellar-muted text-lg leading-relaxed mb-12">
+          <p className="text-postpurchase-muted text-lg leading-relaxed mb-12">
             {product.description}
           </p>
 
-          <div className="space-y-8 pb-12 border-b border-stellar-border">
+          <div className="space-y-8 pb-12 border-b border-postpurchase-border">
             {variants.length > 0 && (
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-stellar-muted mb-4 block">Chọn biến thể</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-postpurchase-muted mb-4 block">Chọn biến thể</span>
                 <div className="flex gap-4">
                   {variants.map((v: any) => (
                     <button
                       key={v.variantId}
                       onClick={() => setSelectedVariantId(v.variantId)}
-                      className={`px-4 py-2 border rounded-lg text-xs ${selectedVariantId === v.variantId ? 'border-stellar-accent bg-stellar-accent text-white' : 'border-stellar-border'}`}
+                      className={`px-4 py-2 border rounded-lg text-xs ${selectedVariantId === v.variantId ? 'border-postpurchase-accent bg-postpurchase-accent text-white' : 'border-postpurchase-border'}`}
                     >
                       {v.variantName}
                     </button>
@@ -102,8 +102,8 @@ export function ProductDetail() {
 
             <div className="flex items-center gap-8">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-stellar-muted mb-4 block">Quantity</span>
-                <div className="flex items-center border border-stellar-border rounded-lg px-4 py-2 gap-6 bg-white">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-postpurchase-muted mb-4 block">Quantity</span>
+                <div className="flex items-center border border-postpurchase-border rounded-lg px-4 py-2 gap-6 bg-white">
                   <button onClick={() => setQuantity(q => Math.max(1, q - 1))}><Minus className="w-4 h-4" /></button>
                   <span className="font-bold w-4 text-center">{quantity}</span>
                   <button onClick={() => setQuantity(q => q + 1)}><Plus className="w-4 h-4" /></button>
@@ -113,7 +113,7 @@ export function ProductDetail() {
                 <button 
                   onClick={handleAddToCart}
                   disabled={variants.length > 0 && !selectedVariantId}
-                  className="w-full bg-stellar-accent text-white py-4 rounded-full font-bold uppercase tracking-widest text-xs disabled:opacity-50 hover:bg-slate-800 transition-all shadow-xl"
+                  className="w-full bg-postpurchase-accent text-white py-4 rounded-full font-bold uppercase tracking-widest text-xs disabled:opacity-50 hover:bg-slate-800 transition-all shadow-xl"
                 >
                   Add to Cart
                 </button>

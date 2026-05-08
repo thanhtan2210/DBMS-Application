@@ -94,7 +94,7 @@ export default function Orders() {
   };
 
   if (loading && orders.length === 0) {
-    return <div className="p-20 text-center italic text-stellar-muted">Loading orders...</div>;
+    return <div className="p-20 text-center italic text-postpurchase-muted">Loading orders...</div>;
   }
 
   return (
@@ -158,9 +158,9 @@ export default function Orders() {
             <div className="p-8 space-y-8 max-h-[calc(100vh-200px)] overflow-y-auto">
               <div className="flex justify-between items-start">
                 <div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-stellar-muted mb-2 block">Order Identity</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-postpurchase-muted mb-2 block">Order Identity</span>
                   <h3 className="text-2xl font-display font-black text-on-surface">{selectedOrder.orderCode}</h3>
-                  <p className="text-[10px] text-stellar-muted mt-1 font-bold">PLACED ON {new Date(selectedOrder.createdAt).toLocaleString().toUpperCase()}</p>
+                  <p className="text-[10px] text-postpurchase-muted mt-1 font-bold">PLACED ON {new Date(selectedOrder.createdAt).toLocaleString().toUpperCase()}</p>
                 </div>
                 {getStatusBadge(selectedOrder.orderStatus)}
               </div>
@@ -175,9 +175,9 @@ export default function Orders() {
                     </div>
                  </div>
                  <div className="flex items-start gap-3 bg-surface-container-low p-4 rounded-2xl">
-                    <MapPin className="w-5 h-5 text-stellar-muted mt-0.5" />
+                    <MapPin className="w-5 h-5 text-postpurchase-muted mt-0.5" />
                     <div>
-                       <p className="text-[10px] font-bold uppercase text-stellar-muted mb-1">Shipping Destination</p>
+                       <p className="text-[10px] font-bold uppercase text-postpurchase-muted mb-1">Shipping Destination</p>
                        <p className="text-xs font-bold text-on-surface leading-relaxed">
                           {selectedOrder.shippingAddress?.receiverName}<br/>
                           {selectedOrder.shippingAddress?.phone}<br/>
@@ -189,7 +189,7 @@ export default function Orders() {
 
               {/* Items Section */}
               <div className="space-y-4 pt-6 border-t border-surface-container">
-                 <p className="text-[10px] font-bold uppercase tracking-widest text-stellar-muted">Order Items</p>
+                 <p className="text-[10px] font-bold uppercase tracking-widest text-postpurchase-muted">Order Items</p>
                  <div className="space-y-3">
                     {selectedOrder.items && selectedOrder.items.map((item: any, idx: number) => (
                       <div key={idx} className="flex justify-between items-center group">
@@ -210,7 +210,7 @@ export default function Orders() {
 
               {/* Status Update Section */}
               <div className="space-y-4 pt-6 border-t border-surface-container">
-                 <p className="text-[10px] font-bold uppercase tracking-widest text-stellar-muted">Manage Fulfillment</p>
+                 <p className="text-[10px] font-bold uppercase tracking-widest text-postpurchase-muted">Manage Fulfillment</p>
                  <div className="grid grid-cols-2 gap-3">
                     {selectedOrder.orderStatus === 'PAID' && (
                        <Button onClick={() => handleStatusUpdate(selectedOrder.id, 'CONFIRMED')} className="gap-2 bg-indigo-600 shadow-lg shadow-indigo-200 h-12 text-[10px] font-bold uppercase">
@@ -255,7 +255,7 @@ export default function Orders() {
               <div className="pt-6 border-t border-surface-container">
                  <div className="flex justify-between items-center mb-6">
                     <span className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Total Valuation</span>
-                    <span className="text-3xl font-black text-stellar-accent">${selectedOrder.totalAmount?.toLocaleString()}</span>
+                    <span className="text-3xl font-black text-postpurchase-accent">${selectedOrder.totalAmount?.toLocaleString()}</span>
                  </div>
                  <Button 
                    onClick={() => window.open(`http://localhost:8080/api/orders/${selectedOrder.orderId}/invoice`, '_blank')}

@@ -103,7 +103,7 @@ export const PRODUCTS: StorefrontProduct[] = [
     name: "The Monolith Chair",
     basePrice: 1250,
     category: "Lounge",
-    brandId: "stellar-origins",
+    brandId: "postpurchase-origins",
     image: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?q=80&w=2787&auto=format&fit=crop",
     description: "A masterclass in restraint. Merging raw industrial feel with organic warmth.",
     rating: 4.8,
@@ -116,7 +116,7 @@ export const PRODUCTS: StorefrontProduct[] = [
     name: "Brutalist Side Table",
     basePrice: 450,
     category: "Surface",
-    brandId: "stellar-origins",
+    brandId: "postpurchase-origins",
     image: "https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=2787&auto=format&fit=crop",
     description: "A sculptural piece that challenges the boundary between furniture and art.",
     rating: 4.7,
@@ -127,7 +127,7 @@ export const PRODUCTS: StorefrontProduct[] = [
 ];
 
 export const BRANDS: Brand[] = [
-  { id: "stellar-origins", name: "Stellar Origins" }
+  { id: "postpurchase-origins", name: "postpurchase Origins" }
 ];
 
 export const CATEGORIES: Category[] = [

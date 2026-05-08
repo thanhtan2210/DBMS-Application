@@ -21,7 +21,7 @@ export function Categories() {
     <div className="container-custom py-20">
       <div className="text-center mb-16">
         <h1 className="text-4xl font-bold mb-4">Curated Spaces</h1>
-        <p className="text-stellar-muted text-lg font-light">Architectural categories designed for precision living.</p>
+        <p className="text-postpurchase-muted text-lg font-light">Architectural categories designed for precision living.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">

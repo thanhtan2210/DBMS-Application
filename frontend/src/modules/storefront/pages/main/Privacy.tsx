@@ -52,7 +52,7 @@ export function Privacy() {
           <section id="intro" className="scroll-mt-28">
             <h2>1. Introduction</h2>
             <p>
-              Welcome to Stellar Commerce. We respect your privacy and are
+              Welcome to Post Purchase Ecommerce. We respect your privacy and are
               committed to protecting your personal data. This privacy policy
               will inform you as to how we look after your personal data when
               you visit our website (regardless of where you visit it from) and
@@ -177,10 +177,10 @@ export function Privacy() {
               If you have any questions about this privacy policy or our privacy
               practices, please contact our Data Privacy Manager at{" "}
               <a
-                href="mailto:privacy@stellarcommerce.com"
+                href="mailto:privacy@postpurchasecommerce.com"
                 className="text-[#3e5f8a] hover:underline"
               >
-                privacy@stellarcommerce.com
+                privacy@postpurchasecommerce.com
               </a>
               .
             </p>

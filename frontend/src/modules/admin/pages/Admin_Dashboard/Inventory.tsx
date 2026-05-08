@@ -175,7 +175,7 @@ export default function Inventory() {
   };
 
   if (loading && products.length === 0) {
-    return <div className="p-20 text-center text-stellar-muted italic">Loading products...</div>;
+    return <div className="p-20 text-center text-postpurchase-muted italic">Loading products...</div>;
   }
 
   return (

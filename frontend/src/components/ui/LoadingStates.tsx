@@ -7,24 +7,24 @@ import { motion } from "motion/react";
 export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div 
-      className={`bg-stellar-border/30 rounded-lg animate-pulse ${className}`} 
+      className={`bg-postpurchase-border/30 rounded-lg animate-pulse ${className}`} 
       {...props}
     />
   );
 }
 
 /**
- * A standard loading spinner component matching the Stellar brand.
+ * A standard loading spinner component matching the postpurchase brand.
  */
 export function Spinner({ className = "w-6 h-6", ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div className={`relative ${className}`} {...props}>
       <motion.div
-        className="absolute inset-0 rounded-full border-2 border-stellar-border opacity-20"
+        className="absolute inset-0 rounded-full border-2 border-postpurchase-border opacity-20"
         aria-hidden="true"
       />
       <motion.div
-        className="absolute inset-0 rounded-full border-2 border-t-stellar-accent border-r-transparent border-b-transparent border-l-transparent"
+        className="absolute inset-0 rounded-full border-2 border-t-postpurchase-accent border-r-transparent border-b-transparent border-l-transparent"
         animate={{ rotate: 360 }}
         transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
       />
@@ -58,7 +58,7 @@ export function LoadingOverlay() {
     <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-[100] flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
         <Spinner className="w-12 h-12" />
-        <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-stellar-muted">
+        <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-postpurchase-muted">
           Processing
         </span>
       </div>

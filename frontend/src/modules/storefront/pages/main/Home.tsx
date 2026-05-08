@@ -32,7 +32,7 @@ export function Home() {
       <section className="relative h-[90vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0 scale-105">
           <img 
-            src="https://picsum.photos/seed/stellar-hero/1920/1080" 
+            src="https://picsum.photos/seed/postpurchase-hero/1920/1080" 
             alt="Hero" 
             className="w-full h-full object-cover blur-sm opacity-60"
             referrerPolicy="no-referrer"
@@ -44,11 +44,11 @@ export function Home() {
           transition={{ duration: 0.8 }}
           className="relative z-10 text-center max-w-2xl px-6 bg-white/40 backdrop-blur-3xl p-16 rounded-[2rem] shadow-2xl border border-white/40"
         >
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 leading-tight">The Stellar <br />Collection</h1>
-          <p className="text-stellar-muted text-lg md:text-xl mb-12 font-light leading-relaxed">
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 leading-tight">The postpurchase <br />Collection</h1>
+          <p className="text-postpurchase-muted text-lg md:text-xl mb-12 font-light leading-relaxed">
             Curated for Architectural Living. Discover pieces that define spaces with uncompromising precision.
           </p>
-          <Link to="/shop" className="inline-block bg-stellar-accent text-white px-10 py-5 rounded-stellar font-bold uppercase tracking-[0.2em] text-xs hover:bg-slate-800 transition-all shadow-lg hover:shadow-stellar-accent/20">
+          <Link to="/shop" className="inline-block bg-postpurchase-accent text-white px-10 py-5 rounded-postpurchase font-bold uppercase tracking-[0.2em] text-xs hover:bg-slate-800 transition-all shadow-lg hover:shadow-postpurchase-accent/20">
             Shop the Collection
           </Link>
         </motion.div>
@@ -58,7 +58,7 @@ export function Home() {
       <section className="py-24 container-custom">
         <div className="flex justify-between items-end mb-12">
           <h2 className="text-4xl font-bold tracking-tight">Defined Spaces</h2>
-          <Link to="/categories" className="text-sm font-semibold text-stellar-muted hover:text-stellar-accent flex items-center gap-1 group">
+          <Link to="/categories" className="text-sm font-semibold text-postpurchase-muted hover:text-postpurchase-accent flex items-center gap-1 group">
             View All <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
@@ -88,7 +88,7 @@ export function Home() {
       </section>
 
       {/* New Arrivals */}
-      <section className="py-24 bg-stellar-card">
+      <section className="py-24 bg-postpurchase-card">
         <div className="container-custom">
           <h2 className="text-3xl font-bold mb-12">New Arrivals</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -98,14 +98,14 @@ export function Home() {
                   <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" referrerPolicy="no-referrer" />
                 </div>
                 <div className="flex justify-between items-start mb-2">
-                  <h4 className="font-bold text-sm group-hover:text-stellar-accent transition-colors">{p.name}</h4>
-                  <span className="text-sm font-bold text-stellar-accent">${p.basePrice.toLocaleString()}</span>
+                  <h4 className="font-bold text-sm group-hover:text-postpurchase-accent transition-colors">{p.name}</h4>
+                  <span className="text-sm font-bold text-postpurchase-accent">${p.basePrice.toLocaleString()}</span>
                 </div>
-                <span className="text-[10px] uppercase font-bold text-stellar-muted tracking-widest">{p.category}</span>
+                <span className="text-[10px] uppercase font-bold text-postpurchase-muted tracking-widest">{p.category}</span>
               </Link>
             ))}
             {products.length === 0 && (
-              <p className="col-span-4 text-center py-10 text-stellar-muted">No new arrivals to show right now.</p>
+              <p className="col-span-4 text-center py-10 text-postpurchase-muted">No new arrivals to show right now.</p>
             )}
           </div>
         </div>
@@ -113,7 +113,7 @@ export function Home() {
       
       {/* Ethos Section */}
       <section className="py-32 container-custom grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-        <div className="aspect-[4/5] bg-stellar-card rounded-[3rem] overflow-hidden relative shadow-2xl">
+        <div className="aspect-[4/5] bg-postpurchase-card rounded-[3rem] overflow-hidden relative shadow-2xl">
           <img 
             src="https://picsum.photos/seed/ethos/1000/1200" 
             alt="Ethos" 
@@ -125,12 +125,12 @@ export function Home() {
           </div>
         </div>
         <div>
-          <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-stellar-accent mb-6 block">Our Ethos</span>
+          <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-postpurchase-accent mb-6 block">Our Ethos</span>
           <h2 className="text-6xl font-bold mb-10 leading-tight">Form Rooted in <br />Structural Integrity</h2>
-          <p className="text-stellar-muted text-lg leading-relaxed mb-12 font-light">
+          <p className="text-postpurchase-muted text-lg leading-relaxed mb-12 font-light">
             We believe that true luxury lies in the unseen details. Every joint, seam, and finish is executed with architectural precision. Our commitment is to create pieces that transcend temporary trends, offering timeless elegance that anchors your living space.
           </p>
-          <Link to="/about" className="text-sm font-bold tracking-widest uppercase flex items-center gap-3 hover:text-stellar-accent transition-colors group">
+          <Link to="/about" className="text-sm font-bold tracking-widest uppercase flex items-center gap-3 hover:text-postpurchase-accent transition-colors group">
             Explore Our Process <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
           </Link>
         </div>

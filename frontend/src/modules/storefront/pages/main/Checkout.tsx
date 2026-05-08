@@ -112,7 +112,7 @@ export function Checkout() {
     return (
       <div className="container-custom py-40 flex flex-col items-center text-center">
         <h1 className="text-4xl font-bold mb-6">Identity Required</h1>
-        <Link to="/login" className="bg-stellar-accent text-white px-10 py-5 rounded-full font-bold uppercase tracking-widest text-xs">
+        <Link to="/login" className="bg-postpurchase-accent text-white px-10 py-5 rounded-full font-bold uppercase tracking-widest text-xs">
            Sign In to Checkout
         </Link>
       </div>
@@ -137,13 +137,13 @@ export function Checkout() {
                   <img 
                       src={`https://source.unsplash.com/random/100x100?product&sig=${item.variant.variantId}`} 
                       alt={item.variant.variantName} 
-                      className="w-20 h-20 object-cover rounded-2xl bg-stellar-card"
+                      className="w-20 h-20 object-cover rounded-2xl bg-postpurchase-card"
                   />
                   <div className="flex-grow flex flex-col justify-between">
                     <div className="flex justify-between">
                       <div>
                         <h3 className="font-bold text-lg">{item.variant.product?.productName || item.variant.variantName}</h3>
-                        {item.variant.product && <p className="text-xs text-stellar-muted">{item.variant.variantName}</p>}
+                        {item.variant.product && <p className="text-xs text-postpurchase-muted">{item.variant.variantName}</p>}
                       </div>
                       <span className="font-bold">${(item.unitPrice * item.quantity).toLocaleString()}</span>
                     </div>
@@ -156,7 +156,7 @@ export function Checkout() {
                   </div>
                 </div>
               )) : (
-                 <p className="text-stellar-muted">Giỏ hàng của bạn đang trống.</p>
+                 <p className="text-postpurchase-muted">Giỏ hàng của bạn đang trống.</p>
               )}
             </div>
           </div>
@@ -170,52 +170,52 @@ export function Checkout() {
                    <div 
                      key={addr.addressId}
                      onClick={() => setSelectedAddressId(addr.addressId)}
-                     className={`p-6 border rounded-2xl cursor-pointer transition-all ${selectedAddressId === addr.addressId ? 'border-stellar-accent shadow-md bg-stellar-accent/5' : 'border-stellar-border hover:border-stellar-muted'}`}
+                     className={`p-6 border rounded-2xl cursor-pointer transition-all ${selectedAddressId === addr.addressId ? 'border-postpurchase-accent shadow-md bg-postpurchase-accent/5' : 'border-postpurchase-border hover:border-postpurchase-muted'}`}
                    >
                       <div className="flex justify-between items-start mb-2">
                         <h4 className="font-bold">{addr.receiverName}</h4>
-                        {addr.isDefault && <span className="text-[10px] bg-stellar-card px-2 py-1 rounded font-bold uppercase text-stellar-muted">Default</span>}
+                        {addr.isDefault && <span className="text-[10px] bg-postpurchase-card px-2 py-1 rounded font-bold uppercase text-postpurchase-muted">Default</span>}
                       </div>
-                      <p className="text-sm text-stellar-muted mb-1">{addr.phone}</p>
-                      <p className="text-sm text-stellar-muted line-clamp-2">{addr.street}, {addr.city}</p>
+                      <p className="text-sm text-postpurchase-muted mb-1">{addr.phone}</p>
+                      <p className="text-sm text-postpurchase-muted line-clamp-2">{addr.street}, {addr.city}</p>
                    </div>
                  ))}
                </div>
              ) : (
-               <p className="text-stellar-muted italic">Không tìm thấy địa chỉ giao hàng.</p>
+               <p className="text-postpurchase-muted italic">Không tìm thấy địa chỉ giao hàng.</p>
              )}
           </div>
         </div>
 
         <div className="lg:col-span-1">
-          <div className="bg-white p-10 rounded-[2.5rem] shadow-sm sticky top-32 border border-stellar-border/50">
+          <div className="bg-white p-10 rounded-[2.5rem] shadow-sm sticky top-32 border border-postpurchase-border/50">
             <h3 className="text-2xl font-bold mb-8">Order Summary</h3>
             
             {/* Promo Code Input */}
             <div className="mb-8">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-stellar-muted mb-2 flex items-center gap-1"><Tag className="w-3 h-3"/> Promotion Code</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-postpurchase-muted mb-2 flex items-center gap-1"><Tag className="w-3 h-3"/> Promotion Code</label>
               <div className="flex gap-2">
                 <input 
                   type="text" 
                   value={promoCode}
                   onChange={e => setPromoCode(e.target.value.toUpperCase())}
                   placeholder="Enter code" 
-                  className="w-full border border-stellar-border rounded-lg px-4 text-sm uppercase"
+                  className="w-full border border-postpurchase-border rounded-lg px-4 text-sm uppercase"
                   disabled={appliedPromo !== null}
                 />
                 {appliedPromo ? (
                    <button onClick={() => { setAppliedPromo(null); setDiscount(0); }} className="px-4 py-2 bg-red-100 text-red-600 rounded-lg text-sm font-bold hover:bg-red-200">Remove</button>
                 ) : (
-                   <button onClick={handleApplyPromo} className="px-4 py-2 bg-stellar-card text-stellar-accent rounded-lg text-sm font-bold hover:bg-stellar-border">Apply</button>
+                   <button onClick={handleApplyPromo} className="px-4 py-2 bg-postpurchase-card text-postpurchase-accent rounded-lg text-sm font-bold hover:bg-postpurchase-border">Apply</button>
                 )}
               </div>
               {promoError && <p className="text-red-500 text-[10px] mt-2">{promoError}</p>}
               {appliedPromo && <p className="text-emerald-500 text-[10px] mt-2 font-bold">Promo '{appliedPromo}' applied! (-${discount.toLocaleString()})</p>}
             </div>
 
-            <div className="space-y-4 mb-8 pt-6 border-t border-stellar-border">
+            <div className="space-y-4 mb-8 pt-6 border-t border-postpurchase-border">
                <div className="flex justify-between text-sm">
-                  <span className="text-stellar-muted">Subtotal</span>
+                  <span className="text-postpurchase-muted">Subtotal</span>
                   <span className="font-bold">${subtotal.toLocaleString()}</span>
                </div>
                {discount > 0 && (
@@ -224,7 +224,7 @@ export function Checkout() {
                     <span>-${discount.toLocaleString()}</span>
                  </div>
                )}
-               <div className="flex justify-between text-xl pt-4 border-t border-stellar-border">
+               <div className="flex justify-between text-xl pt-4 border-t border-postpurchase-border">
                   <span className="font-bold">Total</span>
                   <span className="font-bold">${total.toLocaleString()}</span>
                </div>
@@ -235,7 +235,7 @@ export function Checkout() {
                 console.log("Nút Complete Order đã được nhấn!");
                 handleCompleteOrder();
               }}
-              className="w-full bg-stellar-accent text-white py-5 rounded-full font-bold text-sm hover:opacity-90 transition-opacity"
+              className="w-full bg-postpurchase-accent text-white py-5 rounded-full font-bold text-sm hover:opacity-90 transition-opacity"
             >
               {processing ? "Processing..." : "Complete Order"}
             </button>

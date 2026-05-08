@@ -12,13 +12,13 @@
   --color-admin-secondary: #ae3200;
   
   /* Storefront Theme (Pre-merged vars) */
-  --color-stellar-bg: #FFFFFF;
-  --color-stellar-accent: #1E3A8A;
-  --color-stellar-muted: #64748B;
-  --color-stellar-border: #E2E8F0;
+  --color-postpurchase-bg: #FFFFFF;
+  --color-postpurchase-accent: #1E3A8A;
+  --color-postpurchase-muted: #64748B;
+  --color-postpurchase-border: #E2E8F0;
   
   /* Shared Components */
-  --radius-stellar: 8px;
+  --radius-postpurchase: 8px;
   --shadow-ambient: 0 20px 40px rgba(25, 28, 21, 0.06);
 }
 

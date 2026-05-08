@@ -52,7 +52,7 @@ export default function Shop() {
           <h1 className="text-4xl font-bold mb-2">
             {query ? `Results for "${query}"` : "Collection"}
           </h1>
-          <p className="text-stellar-muted text-sm italic">
+          <p className="text-postpurchase-muted text-sm italic">
             {query ? `Found ${products.length} items matching your search.` : "Precision design for modern living."}
           </p>
         </div>
@@ -60,10 +60,10 @@ export default function Shop() {
 
       <div className="flex flex-col gap-4 mb-16">
         <div className="flex items-center gap-4 overflow-x-auto pb-2 w-full">
-          <span className="text-xs font-bold uppercase tracking-widest text-stellar-muted min-w-[80px]">Categories:</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-postpurchase-muted min-w-[80px]">Categories:</span>
           <button
             onClick={() => setActiveCategoryId(null)}
-            className={`px-6 py-2 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all whitespace-nowrap ${activeCategoryId === null ? "bg-stellar-accent text-white shadow-lg" : "bg-stellar-card text-stellar-muted hover:bg-stellar-border"}`}
+            className={`px-6 py-2 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all whitespace-nowrap ${activeCategoryId === null ? "bg-postpurchase-accent text-white shadow-lg" : "bg-postpurchase-card text-postpurchase-muted hover:bg-postpurchase-border"}`}
           >
             All
           </button>
@@ -71,7 +71,7 @@ export default function Shop() {
             <button
               key={cat.categoryId}
               onClick={() => setActiveCategoryId(cat.categoryId)}
-              className={`px-6 py-2 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all whitespace-nowrap ${activeCategoryId === cat.categoryId ? "bg-stellar-accent text-white shadow-lg" : "bg-stellar-card text-stellar-muted hover:bg-stellar-border"}`}
+              className={`px-6 py-2 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all whitespace-nowrap ${activeCategoryId === cat.categoryId ? "bg-postpurchase-accent text-white shadow-lg" : "bg-postpurchase-card text-postpurchase-muted hover:bg-postpurchase-border"}`}
             >
               {cat.categoryName}
             </button>
@@ -79,10 +79,10 @@ export default function Shop() {
         </div>
 
         <div className="flex items-center gap-4 overflow-x-auto pb-2 w-full">
-          <span className="text-xs font-bold uppercase tracking-widest text-stellar-muted min-w-[80px]">Brands:</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-postpurchase-muted min-w-[80px]">Brands:</span>
           <button
             onClick={() => setActiveBrandId(null)}
-            className={`px-6 py-2 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all whitespace-nowrap ${activeBrandId === null ? "bg-stellar-accent text-white shadow-lg" : "bg-stellar-card text-stellar-muted hover:bg-stellar-border"}`}
+            className={`px-6 py-2 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all whitespace-nowrap ${activeBrandId === null ? "bg-postpurchase-accent text-white shadow-lg" : "bg-postpurchase-card text-postpurchase-muted hover:bg-postpurchase-border"}`}
           >
             All
           </button>
@@ -90,7 +90,7 @@ export default function Shop() {
             <button
               key={brand.id}
               onClick={() => setActiveBrandId(brand.id)}
-              className={`px-6 py-2 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all whitespace-nowrap ${activeBrandId === brand.id ? "bg-stellar-accent text-white shadow-lg" : "bg-stellar-card text-stellar-muted hover:bg-stellar-border"}`}
+              className={`px-6 py-2 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all whitespace-nowrap ${activeBrandId === brand.id ? "bg-postpurchase-accent text-white shadow-lg" : "bg-postpurchase-card text-postpurchase-muted hover:bg-postpurchase-border"}`}
             >
               {brand.name}
             </button>
@@ -106,15 +106,15 @@ export default function Shop() {
         </div>
       ) : products.length === 0 ? (
         <div className="py-20 text-center">
-          <h2 className="text-2xl font-bold text-stellar-accent mb-4 uppercase tracking-tighter">No items found</h2>
-          <p className="text-stellar-muted">Try adjusting your search or filters.</p>
+          <h2 className="text-2xl font-bold text-postpurchase-accent mb-4 uppercase tracking-tighter">No items found</h2>
+          <p className="text-postpurchase-muted">Try adjusting your search or filters.</p>
           <button
             onClick={() => {
                setActiveCategoryId(null);
                setActiveBrandId(null);
                if (query) window.location.href = '/shop';
             }}
-            className="mt-8 px-8 py-4 bg-stellar-accent text-white rounded-full font-bold uppercase tracking-widest text-[10px]"
+            className="mt-8 px-8 py-4 bg-postpurchase-accent text-white rounded-full font-bold uppercase tracking-widest text-[10px]"
           >
             Reset All Filters
           </button>
@@ -129,15 +129,15 @@ export default function Shop() {
               transition={{ delay: idx * 0.05 }}
             >
               <Link to={`/product/${p.id}`} className="group block">
-                <div className="aspect-square bg-stellar-card rounded-[2rem] overflow-hidden mb-6 relative border border-stellar-border shadow-sm hover:shadow-xl transition-all duration-500">
+                <div className="aspect-square bg-postpurchase-card rounded-[2rem] overflow-hidden mb-6 relative border border-postpurchase-border shadow-sm hover:shadow-xl transition-all duration-500">
                   <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" referrerPolicy="no-referrer" />
                 </div>
                 <div className="flex justify-between items-start">
                   <div>
                     <h4 className="font-bold text-lg mb-1">{p.name}</h4>
-                    <p className="text-sm text-stellar-muted font-medium">{p.category}</p>
+                    <p className="text-sm text-postpurchase-muted font-medium">{p.category}</p>
                   </div>
-                  <span className="font-bold text-stellar-accent text-lg">${p.basePrice.toLocaleString()}</span>
+                  <span className="font-bold text-postpurchase-accent text-lg">${p.basePrice.toLocaleString()}</span>
                 </div>
               </Link>
             </motion.div>

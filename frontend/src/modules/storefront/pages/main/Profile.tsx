@@ -44,7 +44,7 @@ export function Profile() {
     return (
       <div className="container-custom py-40 flex flex-col items-center text-center">
         <h1 className="text-4xl font-bold mb-6">Identity Required</h1>
-        <Link to="/login" className="bg-stellar-accent text-white px-10 py-5 rounded-full font-bold uppercase tracking-widest text-xs">
+        <Link to="/login" className="bg-postpurchase-accent text-white px-10 py-5 rounded-full font-bold uppercase tracking-widest text-xs">
            Sign In
         </Link>
       </div>
@@ -69,12 +69,12 @@ export function Profile() {
   return (
     <div className="min-h-screen pt-32 pb-20 bg-slate-50/30">
       <div className="container-custom max-w-4xl">
-        <Link to="/" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-stellar-muted hover:text-stellar-accent transition-colors mb-8">
+        <Link to="/" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-postpurchase-muted hover:text-postpurchase-accent transition-colors mb-8">
           <ArrowLeft className="w-4 h-4" /> Back to Store
         </Link>
 
-        <div className="bg-white rounded-[3rem] border border-stellar-border overflow-hidden shadow-sm">
-          <div className="h-48 bg-stellar-accent relative">
+        <div className="bg-white rounded-[3rem] border border-postpurchase-border overflow-hidden shadow-sm">
+          <div className="h-48 bg-postpurchase-accent relative">
              <div className="absolute -bottom-16 left-12">
                  <img 
                   src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`} 
@@ -88,10 +88,10 @@ export function Profile() {
             <div className="flex justify-between items-start mb-12">
               <div>
                 <h1 className="text-4xl font-bold tracking-tighter uppercase mb-2">{formData.fullName || "Account"}</h1>
-                <p className="text-stellar-muted text-sm italic">Loyalty Points: <span className="font-bold text-stellar-accent">{profile?.loyaltyPoints || 0}</span></p>
+                <p className="text-postpurchase-muted text-sm italic">Loyalty Points: <span className="font-bold text-postpurchase-accent">{profile?.loyaltyPoints || 0}</span></p>
               </div>
               <div className="flex gap-4">
-                 <Link to="/orders" className="flex items-center gap-2 px-6 py-3 bg-slate-100 text-stellar-accent rounded-full font-bold uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-colors">
+                 <Link to="/orders" className="flex items-center gap-2 px-6 py-3 bg-slate-100 text-postpurchase-accent rounded-full font-bold uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-colors">
                     <Package className="w-4 h-4" /> My Orders
                  </Link>
                  <button onClick={() => { logout(); navigate('/'); }} className="flex items-center gap-2 px-6 py-3 bg-red-50 text-red-500 rounded-full font-bold uppercase tracking-widest text-[10px] hover:bg-red-100 transition-colors">
@@ -110,7 +110,7 @@ export function Profile() {
                       type="text" 
                       value={formData.fullName}
                       onChange={(e) => setFormData({...formData, fullName: e.target.value})}
-                      className="w-full bg-slate-50/50 border border-[#eef2f6] rounded-xl pl-12 pr-5 py-4 focus:ring-1 focus:ring-stellar-accent outline-none text-sm" 
+                      className="w-full bg-slate-50/50 border border-[#eef2f6] rounded-xl pl-12 pr-5 py-4 focus:ring-1 focus:ring-postpurchase-accent outline-none text-sm" 
                       placeholder="Your display name"
                     />
                   </div>
@@ -137,7 +137,7 @@ export function Profile() {
                       type="tel" 
                       value={formData.phone}
                       onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                      className="w-full bg-slate-50/50 border border-[#eef2f6] rounded-xl pl-12 pr-5 py-4 focus:ring-1 focus:ring-stellar-accent outline-none text-sm" 
+                      className="w-full bg-slate-50/50 border border-[#eef2f6] rounded-xl pl-12 pr-5 py-4 focus:ring-1 focus:ring-postpurchase-accent outline-none text-sm" 
                       placeholder="+1 (555) 000-0000"
                     />
                   </div>
@@ -156,7 +156,7 @@ export function Profile() {
                 <button 
                   onClick={handleSubmitProfile}
                   disabled={isSaving}
-                  className="w-full bg-stellar-accent text-white py-5 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-slate-800 transition-all flex items-center justify-center gap-3 shadow-lg shadow-stellar-accent/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-postpurchase-accent text-white py-5 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-slate-800 transition-all flex items-center justify-center gap-3 shadow-lg shadow-postpurchase-accent/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSaving ? "Saving..." : "Save Profile Changes"}
                 </button>
@@ -168,21 +168,21 @@ export function Profile() {
                 {addresses.length > 0 ? (
                   <div className="space-y-4">
                     {addresses.map(addr => (
-                      <div key={addr.addressId} className="p-5 border border-stellar-border rounded-2xl bg-slate-50 flex justify-between items-start">
+                      <div key={addr.addressId} className="p-5 border border-postpurchase-border rounded-2xl bg-slate-50 flex justify-between items-start">
                         <div>
                           <div className="flex items-center gap-2 mb-1">
                             <span className="font-bold text-sm">{addr.receiverName}</span>
-                            {addr.isDefault && <span className="bg-stellar-accent text-white text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-widest">Default</span>}
+                            {addr.isDefault && <span className="bg-postpurchase-accent text-white text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-widest">Default</span>}
                           </div>
-                          <p className="text-xs text-stellar-muted">{addr.phone}</p>
-                          <p className="text-xs text-stellar-muted mt-2">{addr.street}, {addr.ward}</p>
-                          <p className="text-xs text-stellar-muted">{addr.district}, {addr.city}</p>
+                          <p className="text-xs text-postpurchase-muted">{addr.phone}</p>
+                          <p className="text-xs text-postpurchase-muted mt-2">{addr.street}, {addr.ward}</p>
+                          <p className="text-xs text-postpurchase-muted">{addr.district}, {addr.city}</p>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-stellar-muted italic">No addresses saved yet.</p>
+                  <p className="text-sm text-postpurchase-muted italic">No addresses saved yet.</p>
                 )}
               </div>
             </div>

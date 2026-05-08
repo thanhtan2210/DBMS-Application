@@ -13,8 +13,8 @@ export function Shipping() {
         {/* Hero Section */}
         <div className="flex flex-col lg:flex-row gap-20 items-center mb-32">
           <div className="lg:w-1/2">
-            <h1 className="text-[64px] font-bold text-stellar-accent leading-[1.1] mb-8 tracking-[-0.03em]">Precision in Delivery.</h1>
-            <p className="text-[20px] text-stellar-muted font-medium opacity-60 leading-relaxed max-w-xl">
+            <h1 className="text-[64px] font-bold text-postpurchase-accent leading-[1.1] mb-8 tracking-[-0.03em]">Precision in Delivery.</h1>
+            <p className="text-[20px] text-postpurchase-muted font-medium opacity-60 leading-relaxed max-w-xl">
               We approach logistics with the same meticulous attention to detail as our architectural pieces. Review our transparent shipping tiers and global freight protocols below.
             </p>
           </div>
@@ -34,36 +34,36 @@ export function Shipping() {
             <div className="w-10 h-10 bg-[#1e4e7e] text-white rounded-lg flex items-center justify-center shrink-0">
               <Truck className="w-5 h-5" />
             </div>
-            <h2 className="text-[32px] font-bold text-stellar-accent">Domestic Freight</h2>
+            <h2 className="text-[32px] font-bold text-postpurchase-accent">Domestic Freight</h2>
           </div>
 
-          <div className="bg-[#f8f9fa] border border-stellar-border rounded-[24px] overflow-hidden">
+          <div className="bg-[#f8f9fa] border border-postpurchase-border rounded-[24px] overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-stellar-border bg-slate-50">
-                    <th className="px-10 py-6 text-[10px] uppercase font-bold tracking-[0.2em] text-stellar-muted">Service Tier</th>
-                    <th className="px-10 py-6 text-[10px] uppercase font-bold tracking-[0.2em] text-stellar-muted">Estimated Transit</th>
-                    <th className="px-10 py-6 text-[10px] uppercase font-bold tracking-[0.2em] text-stellar-muted">Handling Protocol</th>
-                    <th className="px-10 py-6 text-[10px] uppercase font-bold tracking-[0.2em] text-stellar-muted text-right">Tariff</th>
+                  <tr className="border-b border-postpurchase-border bg-slate-50">
+                    <th className="px-10 py-6 text-[10px] uppercase font-bold tracking-[0.2em] text-postpurchase-muted">Service Tier</th>
+                    <th className="px-10 py-6 text-[10px] uppercase font-bold tracking-[0.2em] text-postpurchase-muted">Estimated Transit</th>
+                    <th className="px-10 py-6 text-[10px] uppercase font-bold tracking-[0.2em] text-postpurchase-muted">Handling Protocol</th>
+                    <th className="px-10 py-6 text-[10px] uppercase font-bold tracking-[0.2em] text-postpurchase-muted text-right">Tariff</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-stellar-border">
+                <tbody className="divide-y divide-postpurchase-border">
                   {domesticTiers.map((tier, idx) => (
                     <tr key={idx} className="hover:bg-white transition-colors group italic">
                       <td className="px-10 py-10">
                         <span className="text-[15px] font-bold text-[#1e4e7e] not-italic">{tier.tier}</span>
                       </td>
                       <td className="px-10 py-10">
-                        <span className="text-[14px] text-stellar-muted font-medium opacity-70">{tier.transit}</span>
+                        <span className="text-[14px] text-postpurchase-muted font-medium opacity-70">{tier.transit}</span>
                       </td>
                       <td className="px-10 py-10">
-                        <span className="text-[14px] text-stellar-muted font-medium opacity-70">{tier.protocol}</span>
+                        <span className="text-[14px] text-postpurchase-muted font-medium opacity-70">{tier.protocol}</span>
                       </td>
                       <td className="px-10 py-10 text-right">
                         <div>
-                          <p className="text-[15px] font-bold text-stellar-accent not-italic">{tier.tariff}</p>
-                          {tier.sub && <p className="text-[11px] text-stellar-muted font-medium opacity-50 not-italic">{tier.sub}</p>}
+                          <p className="text-[15px] font-bold text-postpurchase-accent not-italic">{tier.tariff}</p>
+                          {tier.sub && <p className="text-[11px] text-postpurchase-muted font-medium opacity-50 not-italic">{tier.sub}</p>}
                         </div>
                       </td>
                     </tr>
@@ -80,45 +80,45 @@ export function Shipping() {
             <div className="w-10 h-10 bg-[#1e4e7e] text-white rounded-lg flex items-center justify-center shrink-0">
               <Globe2 className="w-5 h-5" />
             </div>
-            <h2 className="text-[32px] font-bold text-stellar-accent">Global Architecture Reach</h2>
+            <h2 className="text-[32px] font-bold text-postpurchase-accent">Global Architecture Reach</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white border border-stellar-border p-10 rounded-[28px] hover:shadow-xl transition-all">
+            <div className="bg-white border border-postpurchase-border p-10 rounded-[28px] hover:shadow-xl transition-all">
               <div className="w-10 h-10 bg-[#f0f7ff] text-[#1e4e7e] rounded-lg flex items-center justify-center mb-8">
                 <Plane className="w-5 h-5" />
               </div>
-              <h3 className="text-[20px] font-bold text-stellar-accent mb-6">European Union & UK</h3>
-              <p className="text-[14px] text-stellar-muted font-medium opacity-60 leading-relaxed mb-12">
+              <h3 className="text-[20px] font-bold text-postpurchase-accent mb-6">European Union & UK</h3>
+              <p className="text-[14px] text-postpurchase-muted font-medium opacity-60 leading-relaxed mb-12">
                 Dedicated freight corridors established for seamless delivery across Europe. VAT and duties are calculated pre-clearance for DDP shipping.
               </p>
-              <div className="pt-6 border-t border-stellar-border">
+              <div className="pt-6 border-t border-postpurchase-border">
                 <span className="text-[12px] font-bold text-[#1e4e7e] uppercase tracking-widest">7-10 Days Transit</span>
               </div>
             </div>
 
-            <div className="bg-white border border-stellar-border p-10 rounded-[28px] hover:shadow-xl transition-all">
+            <div className="bg-white border border-postpurchase-border p-10 rounded-[28px] hover:shadow-xl transition-all">
               <div className="w-10 h-10 bg-[#f0f7ff] text-[#1e4e7e] rounded-lg flex items-center justify-center mb-8">
                 <Ship className="w-5 h-5" />
               </div>
-              <h3 className="text-[20px] font-bold text-stellar-accent mb-6">Asia Pacific</h3>
-              <p className="text-[14px] text-stellar-muted font-medium opacity-60 leading-relaxed mb-12">
+              <h3 className="text-[20px] font-bold text-postpurchase-accent mb-6">Asia Pacific</h3>
+              <p className="text-[14px] text-postpurchase-muted font-medium opacity-60 leading-relaxed mb-12">
                 Ocean freight and priority air options available for large architectural fixtures. Specialized crating ensures structural integrity during transit.
               </p>
-              <div className="pt-6 border-t border-stellar-border">
+              <div className="pt-6 border-t border-postpurchase-border">
                 <span className="text-[12px] font-bold text-[#1e4e7e] uppercase tracking-widest">12-21 Days Transit</span>
               </div>
             </div>
 
-            <div className="bg-white border border-stellar-border p-10 rounded-[28px] hover:shadow-xl transition-all">
+            <div className="bg-white border border-postpurchase-border p-10 rounded-[28px] hover:shadow-xl transition-all">
               <div className="w-10 h-10 bg-[#f0f7ff] text-[#1e4e7e] rounded-lg flex items-center justify-center mb-8">
                 <FileText className="w-5 h-5" />
               </div>
-              <h3 className="text-[20px] font-bold text-stellar-accent mb-6">Customs & Duties</h3>
-              <p className="text-[14px] text-stellar-muted font-medium opacity-60 leading-relaxed mb-12">
+              <h3 className="text-[20px] font-bold text-postpurchase-accent mb-6">Customs & Duties</h3>
+              <p className="text-[14px] text-postpurchase-muted font-medium opacity-60 leading-relaxed mb-12">
                 We partner with elite customs brokers. All required documentation, including certificates of origin and material safety data, are handled by our logistics atelier.
               </p>
-              <div className="pt-6 border-t border-stellar-border">
+              <div className="pt-6 border-t border-postpurchase-border">
                 <button className="flex items-center gap-2 text-[12px] font-bold text-[#1e4e7e] uppercase tracking-widest hover:gap-3 transition-all">
                   View Import Policies <ChevronRight className="w-3 h-3" />
                 </button>

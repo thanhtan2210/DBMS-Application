@@ -65,13 +65,13 @@ export function Header() {
       <nav className={`fixed top-0 left-0 right-0 z-50 px-6 py-6 flex justify-between items-center transition-all duration-300 ${isScrolled ? "bg-white/90 backdrop-blur-md shadow-sm py-4" : "bg-transparent"}`}>
         <div className="flex items-center gap-10">
           <Link to="/" className="flex items-center gap-2 shrink-0">
-            <span className="font-bold text-xl tracking-tight text-stellar-accent">Stellar Commerce</span>
+            <span className="font-bold text-xl tracking-tight text-postpurchase-accent">Post Purchase Ecommerce</span>
           </Link>
           
-          <div className="hidden lg:flex gap-8 text-[11px] uppercase tracking-[0.2em] font-semibold text-stellar-muted">
-            <Link to="/categories" className="hover:text-stellar-accent transition-colors">Categories</Link>
-            <Link to="/shop" className="hover:text-stellar-accent transition-colors">New Arrivals</Link>
-            <Link to="/support" className="hover:text-stellar-accent transition-colors">Support</Link>
+          <div className="hidden lg:flex gap-8 text-[11px] uppercase tracking-[0.2em] font-semibold text-postpurchase-muted">
+            <Link to="/categories" className="hover:text-postpurchase-accent transition-colors">Categories</Link>
+            <Link to="/shop" className="hover:text-postpurchase-accent transition-colors">New Arrivals</Link>
+            <Link to="/support" className="hover:text-postpurchase-accent transition-colors">Support</Link>
           </div>
         </div>
 
@@ -87,7 +87,7 @@ export function Header() {
             >
               <button 
                 onClick={() => setIsSearchExpanded(!isSearchExpanded)}
-                className="p-2 text-stellar-muted hover:text-stellar-accent shrink-0"
+                className="p-2 text-postpurchase-muted hover:text-postpurchase-accent shrink-0"
               >
                 <Search className="w-5 h-5" />
               </button>
@@ -97,7 +97,7 @@ export function Header() {
                   ref={searchInputRef}
                   type="text"
                   placeholder="Search..."
-                  className="bg-transparent border-none outline-none text-sm w-full text-stellar-accent placeholder:text-slate-300"
+                  className="bg-transparent border-none outline-none text-sm w-full text-postpurchase-accent placeholder:text-slate-300"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -106,16 +106,16 @@ export function Header() {
           </div>
 
           <Link to="/checkout" className="relative shrink-0">
-            <ShoppingCart className="w-5 h-5 text-stellar-muted hover:text-stellar-accent" />
-            <span className="absolute -top-2 -right-2 bg-stellar-accent text-white text-[8px] font-bold w-4 h-4 rounded-full flex items-center justify-center border-2 border-white">{totalItems}</span>
+            <ShoppingCart className="w-5 h-5 text-postpurchase-muted hover:text-postpurchase-accent" />
+            <span className="absolute -top-2 -right-2 bg-postpurchase-accent text-white text-[8px] font-bold w-4 h-4 rounded-full flex items-center justify-center border-2 border-white">{totalItems}</span>
           </Link>
         
         {isAuthenticated ? (
           <div className="hidden md:flex items-center gap-6">
-            <Link to="/profile" className="text-[10px] uppercase font-bold tracking-widest text-stellar-muted hover:text-stellar-accent transition-colors flex items-center gap-1.5">
+            <Link to="/profile" className="text-[10px] uppercase font-bold tracking-widest text-postpurchase-muted hover:text-postpurchase-accent transition-colors flex items-center gap-1.5">
                <User className="w-3.5 h-3.5" /> Profile
             </Link>
-            <Link to="/orders" className="text-[10px] uppercase font-bold tracking-widest text-stellar-muted hover:text-stellar-accent transition-colors flex items-center gap-1.5">
+            <Link to="/orders" className="text-[10px] uppercase font-bold tracking-widest text-postpurchase-muted hover:text-postpurchase-accent transition-colors flex items-center gap-1.5">
                <Package className="w-3.5 h-3.5" /> Orders
             </Link>
             <button 
@@ -126,14 +126,14 @@ export function Header() {
             </button>
           </div>
         ) : (
-          <Link to="/login" className="hidden md:flex items-center gap-2 text-stellar-muted hover:text-stellar-accent transition-colors">
+          <Link to="/login" className="hidden md:flex items-center gap-2 text-postpurchase-muted hover:text-postpurchase-accent transition-colors">
             <User className="w-5 h-5" />
             <span className="text-[10px] uppercase font-bold tracking-widest">Sign In</span>
           </Link>
         )}
 
         <button onClick={() => setIsMenuOpen(true)} className="lg:hidden">
-          <Menu className="w-6 h-6 text-stellar-muted" />
+          <Menu className="w-6 h-6 text-postpurchase-muted" />
         </button>
       </div>
 
@@ -146,7 +146,7 @@ export function Header() {
             className="fixed inset-0 bg-white z-[60] flex flex-col p-8"
           >
             <div className="flex justify-between items-center mb-12">
-              <span className="font-bold text-xl tracking-tight text-stellar-accent">Menu</span>
+              <span className="font-bold text-xl tracking-tight text-postpurchase-accent">Menu</span>
               <button onClick={() => setIsMenuOpen(false)}><X className="w-6 h-6" /></button>
             </div>
             <div className="flex flex-col gap-8 text-2xl font-light">
@@ -174,26 +174,26 @@ export function Header() {
 
 export function Footer() {
   return (
-    <footer className="bg-white border-t border-stellar-border py-20 mt-20">
+    <footer className="bg-white border-t border-postpurchase-border py-20 mt-20">
       <div className="container-custom">
         <div className="flex flex-col md:flex-row justify-between items-start gap-12">
           <div className="max-w-xs">
-            <h3 className="font-bold text-xl mb-6 text-stellar-accent">Stellar Commerce</h3>
-            <p className="text-stellar-muted text-[11px] leading-relaxed font-medium uppercase tracking-widest">
-              © 2024 STELLAR COMMERCE. PRECISION IN EVERY DETAIL.
+            <h3 className="font-bold text-xl mb-6 text-postpurchase-accent">Post Purchase Ecommerce</h3>
+            <p className="text-postpurchase-muted text-[11px] leading-relaxed font-medium uppercase tracking-widest">
+              © 2024 Post Purchase Ecommerce. PRECISION IN EVERY DETAIL.
             </p>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-16 lg:gap-24">
             <div className="space-y-6">
-              <h5 className="text-[10px] uppercase tracking-[0.2em] font-bold text-stellar-text opacity-40">Legal</h5>
-              <ul className="flex flex-col gap-3 text-[12px] font-medium text-stellar-muted">
+              <h5 className="text-[10px] uppercase tracking-[0.2em] font-bold text-postpurchase-text opacity-40">Legal</h5>
+              <ul className="flex flex-col gap-3 text-[12px] font-medium text-postpurchase-muted">
                 <li><Link to="/privacy">Privacy Policy</Link></li>
                 <li><Link to="/terms">Terms of Service</Link></li>
               </ul>
             </div>
             <div className="space-y-6">
-              <h5 className="text-[10px] uppercase tracking-[0.2em] font-bold text-stellar-text opacity-40">Customer</h5>
-              <ul className="flex flex-col gap-3 text-[12px] font-medium text-stellar-muted">
+              <h5 className="text-[10px] uppercase tracking-[0.2em] font-bold text-postpurchase-text opacity-40">Customer</h5>
+              <ul className="flex flex-col gap-3 text-[12px] font-medium text-postpurchase-muted">
                 <li><Link to="/shipping">Shipping Info</Link></li>
                 <li><Link to="/returns">Returns</Link></li>
               </ul>

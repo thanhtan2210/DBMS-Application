@@ -85,11 +85,11 @@ export default function Settings() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-[10px] font-extrabold text-on-surface-variant uppercase tracking-widest px-1">Store Name</label>
-                <Input defaultValue="Stellar Commerce" className="h-12 bg-surface-container-low font-bold" />
+                <Input defaultValue="Post Purchase Ecommerce" className="h-12 bg-surface-container-low font-bold" />
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-extrabold text-on-surface-variant uppercase tracking-widest px-1">Support Email</label>
-                <Input defaultValue="support@stellarcommerce.com" className="h-12 bg-surface-container-low font-bold" />
+                <Input defaultValue="tttnd@hcmut.edu.vn" className="h-12 bg-surface-container-low font-bold" />
               </div>
               <div className="space-y-2 md:col-span-2">
                 <label className="text-[10px] font-extrabold text-on-surface-variant uppercase tracking-widest px-1">Store Description</label>
@@ -137,8 +137,8 @@ export default function Settings() {
             </div>
             <div className="space-y-4">
               {[
-                { name: 'Jane Doe', email: 'jane@stellarcommerce.com', role: 'Administrator', status: 'Active' },
-                { name: 'John Smith', email: 'john@stellarcommerce.com', role: 'Support Staff', status: 'Pending' },
+                { name: 'Jane Doe', email: 'jane@postpurchasecommerce.com', role: 'Administrator', status: 'Active' },
+                { name: 'John Smith', email: 'john@postpurchasecommerce.com', role: 'Support Staff', status: 'Pending' },
               ].map((member) => (
                 <div key={member.email} className="flex items-center justify-between p-4 bg-surface-container-low rounded-xl group hover:bg-surface-container transition-all">
                   <div className="flex items-center gap-4">
