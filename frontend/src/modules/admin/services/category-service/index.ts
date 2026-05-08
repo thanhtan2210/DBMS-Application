@@ -1,8 +1,8 @@
 import axiosClient from '@/api/axiosClient';
 
 export interface CategoryDTO {
-  categoryId: number;
-  categoryName: string;
+  id: number;
+  name: string;
   description: string;
   imageUrl?: string;
 }

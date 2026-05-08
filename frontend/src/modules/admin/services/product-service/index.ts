@@ -38,7 +38,9 @@ export const getActiveProducts = async (params?: { keyword?: string, categoryId?
       image: item.imageUrl || `https://source.unsplash.com/random/400x400?product&sig=${item.productId}`
     }));
 
-    return { content: products };
+    const totalPages = response?.totalPages || response?.data?.totalPages || 1;
+    const page = response?.page || response?.data?.page || 0;
+    return { content: products, totalPages, page };
   } catch (error) {
     console.error("Error in getActiveProducts:", error);
     return { content: [] };

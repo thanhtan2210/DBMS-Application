@@ -30,19 +30,19 @@ const paymentOptions: Array<{
   description: string;
   icon: React.ReactNode;
 }> = [
-  {
-    value: 'COD',
-    title: 'Thanh toán khi nhận hàng',
-    description: 'Đơn hàng sẽ được ghi nhận và bạn quay lại trang chủ ngay sau khi xác nhận.',
-    icon: <Banknote className="w-5 h-5" />,
-  },
-  {
-    value: 'MOMO',
-    title: 'Ví MoMo',
-    description: 'Mở cổng thanh toán MoMo sandbox để hoàn tất giao dịch như người dùng thật.',
-    icon: <CreditCard className="w-5 h-5" />,
-  },
-];
+    {
+      value: 'COD',
+      title: 'Cash on delivery',
+      description: 'Order will be recorded and you will return to the homepage immediately after confirmation.',
+      icon: <Banknote className="w-5 h-5" />,
+    },
+    {
+      value: 'MOMO',
+      title: 'MoMo e-wallet',
+      description: 'Open MoMo payment gateway to complete the transaction like a real user.',
+      icon: <CreditCard className="w-5 h-5" />,
+    },
+  ];
 
 export function Payment() {
   const { orderId } = useParams();
@@ -60,7 +60,7 @@ export function Payment() {
   useEffect(() => {
     const load = async () => {
       if (!parsedOrderId) {
-        setError('Thiếu mã đơn hàng.');
+        setError('Missing order ID.');
         setLoading(false);
         return;
       }
@@ -78,16 +78,16 @@ export function Payment() {
           setSelectedMethod(existingPayment.paymentMethod === 'COD' ? 'COD' : 'MOMO');
 
           if (existingPayment.paymentStatus === 'SUCCESS') {
-            setMessage('Thanh toán đã hoàn tất. Bạn sẽ được chuyển về trang chủ để tiếp tục mua sắm.');
+            setMessage('Payment completed successfully. You will be redirected to the homepage to continue shopping.');
           } else {
-            setMessage('Đơn hàng đã có thông tin thanh toán. Bạn có thể tiếp tục thanh toán với MoMo.');
+            setMessage('Order has payment information. You can continue to pay with MoMo.');
           }
         } catch {
           setPayment(null);
         }
       } catch (err: any) {
         console.error(err);
-        setError(err?.response?.data?.message || err?.message || 'Không tải được thông tin đơn hàng.');
+        setError(err?.response?.data?.message || err?.message || 'Failed to load order information.');
       } finally {
         setLoading(false);
       }
@@ -115,7 +115,7 @@ export function Payment() {
       setPayment(response.payment);
 
       if (selectedMethod === 'COD') {
-        setMessage('Đơn hàng đã được ghi nhận. Bạn sẽ được chuyển về trang chủ ngay bây giờ.');
+        setMessage('Order placed successfully. You will be redirected to the homepage soon.');
         navigate('/');
         return;
       }
@@ -125,10 +125,10 @@ export function Payment() {
         return;
       }
 
-      setError('MoMo chưa trả về đường dẫn thanh toán. Vui lòng thử lại.');
+      setError('Failed to open MoMo payment gateway. Please try again.');
     } catch (err: any) {
       console.error(err);
-      setError(err?.response?.data?.message || err?.message || 'Không thể mở cổng thanh toán MoMo.');
+      setError(err?.response?.data?.message || err?.message || 'Failed to open MoMo payment gateway.');
     } finally {
       setSubmitting(false);
     }
@@ -168,7 +168,7 @@ export function Payment() {
                 <ArrowLeft className="w-4 h-4" /> Back to checkout
               </Link>
               <h1 className="text-4xl font-bold tracking-tight">Payment</h1>
-              <p className="text-postpurchase-muted mt-2">Chọn phương thức thanh toán cho đơn {order?.orderCode || parsedOrderId}.</p>
+              <p className="text-postpurchase-muted mt-2">Select a payment method for order {order?.orderCode || parsedOrderId}.</p>
             </div>
             <div className="hidden md:flex items-center gap-2 rounded-full bg-slate-50 px-4 py-2 text-xs font-bold uppercase tracking-widest text-slate-600">
               <ShieldCheck className="w-4 h-4" /> MoMo sandbox
@@ -212,7 +212,7 @@ export function Payment() {
               className="inline-flex items-center gap-2 rounded-full bg-postpurchase-accent px-6 py-3 text-white font-bold uppercase tracking-widest text-[10px] disabled:opacity-60"
             >
               {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Smartphone className="w-4 h-4" />}
-              {selectedMethod === 'MOMO' ? 'Mở MoMo để thanh toán' : 'Xác nhận và quay về trang chủ'}
+              {selectedMethod === 'MOMO' ? 'Open MoMo to pay' : 'Confirm and return to homepage'}
             </button>
           </div>
 
@@ -238,7 +238,7 @@ export function Payment() {
           <div className="rounded-[1.5rem] bg-white/8 p-5 border border-white/10">
             <div className="flex items-center justify-between text-sm text-white/70">
               <span>Total amount</span>
-              <span>Trạng thái</span>
+              <span>Status</span>
             </div>
             <div className="mt-2 flex items-end justify-between gap-4">
               <p className="text-3xl font-bold">${Number(order?.totalAmount || 0).toLocaleString()}</p>
@@ -256,16 +256,10 @@ export function Payment() {
 
             <div className="rounded-2xl bg-white/8 p-4 border border-white/10">
               <p className="text-[10px] uppercase tracking-widest text-white/50 mb-2">Payment record</p>
-              <p>Phương thức: {payment?.paymentMethod || selectedMethod}</p>
-              <p>Kênh thanh toán: {payment?.paymentProvider || selectedMethod}</p>
-              <p>Mã giao dịch: {payment?.transactionRef || 'Sẽ được tạo khi bạn mở MoMo'}</p>
+              <p>Method: {payment?.paymentMethod || selectedMethod}</p>
+              <p>Provider: {payment?.paymentProvider || selectedMethod}</p>
+              <p>Transaction ID: {payment?.transactionRef || 'Will be created when you open MoMo'}</p>
             </div>
-          </div>
-
-          <div className="rounded-2xl bg-blue-500/10 p-4 border border-blue-400/20 text-sm text-blue-100">
-            {selectedMethod === 'COD'
-              ? 'Bạn đã chọn thanh toán khi nhận hàng. Đơn hàng sẽ được ghi nhận và quay về trang chủ.'
-              : 'Bạn đã chọn MoMo Sandbox. Hệ thống sẽ mở cổng thanh toán thật để hoàn tất giao dịch.'}
           </div>
         </div>
       </div>

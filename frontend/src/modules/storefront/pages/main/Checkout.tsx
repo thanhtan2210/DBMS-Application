@@ -262,7 +262,7 @@ export function Checkout() {
                     onChange={(e) => selectItem(item.cartItemId, e.target.checked)}
                   />
                   <img
-                    src={`https://source.unsplash.com/random/100x100?product&sig=${item.variant.variantId}`}
+                    src={item.variant.imageUrl}
                     alt={item.variant.variantName}
                     className="w-20 h-20 object-cover rounded-2xl bg-postpurchase-card"
                   />

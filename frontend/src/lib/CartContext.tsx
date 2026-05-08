@@ -3,10 +3,11 @@ import { getCartItems, addItemToCart, updateCartItemQuantity, removeItemFromCart
 import { useAuthStore } from "@/store/useAuthStore";
 
 interface CartItem {
-  cartItemId: number; 
+  cartItemId: number;
   variant: {
     variantId: number;
     variantName: string;
+    imageUrl: string;
     product?: {
       productName: string;
     }
@@ -31,7 +32,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const { user } = useAuthStore();
-  
+
   // Mapping email sang customerId cho mục đích demo
   const customerIdMap: Record<string, number> = {
     'alice@email.com': 2,
